@@ -4,7 +4,9 @@ import BackToTop from "./components/BackToTop";
 import Footer from "./components/Footer";
 import PrivateRoute from "./components/PrivateRoute";
 import SideBarLayout from "./layouts/SidebarLayou";
+import Classes from "./pages/Classes";
 import Dashboard from "./pages/Dashboard";
+import EntryLogs from "./pages/EntryLogs";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import NotAuthorized from "./pages/NotAuthorized";
@@ -32,6 +34,8 @@ export default function App() {
             {/* Admin Routes */}
             <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
               <Route path="/admin/dashboard" element={<Dashboard />} />
+              <Route path="/admin/entry" element={<EntryLogs />} />
+              <Route path="/admin/classes" element={<Classes />} />
             </Route>
 
             <Route path="/unauthorized" element={<NotAuthorized />} />
