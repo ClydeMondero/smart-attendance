@@ -1,5 +1,4 @@
 import { DataTable } from "@/components/DataTable";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,7 +22,6 @@ type EntryLog = {
   section: string;
   timeIn: string;
   timeOut: string;
-  status: "Active" | "Inactive";
 };
 
 // --- Component ---
@@ -43,7 +41,6 @@ export default function EntryLogs() {
         section: "Class A",
         timeIn: "8:30 am",
         timeOut: "1:00 pm",
-        status: "Active",
       },
       {
         id: "2",
@@ -54,7 +51,6 @@ export default function EntryLogs() {
         section: "Class B",
         timeIn: "8:35 am",
         timeOut: "1:10 pm",
-        status: "Active",
       },
     ],
     []
@@ -77,18 +73,6 @@ export default function EntryLogs() {
     { accessorKey: "section", header: "Section" },
     { accessorKey: "timeIn", header: "Time In" },
     { accessorKey: "timeOut", header: "Time Out" },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => {
-        const status = row.getValue("status") as EntryLog["status"];
-        const color =
-          status === "Active"
-            ? "bg-green-100 text-green-800"
-            : "bg-gray-200 text-gray-700";
-        return <Badge className={color}>{status}</Badge>;
-      },
-    },
     {
       id: "actions",
       header: "Actions",
@@ -139,17 +123,6 @@ export default function EntryLogs() {
             <DropdownMenuContent>
               <DropdownMenuItem>Section 1</DropdownMenuItem>
               <DropdownMenuItem>Section 2</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Select Status <ChevronDown className="ml-1 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Active</DropdownMenuItem>
-              <DropdownMenuItem>Inactive</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

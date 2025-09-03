@@ -8,52 +8,41 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { scrollToTop } from "@/utils/scroll";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ChevronDown, Eye, Pencil, Trash } from "lucide-react";
+import { ChevronDown, Pencil, Trash } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router";
 
 // --- Types ---
-type ClassItem = {
+type SubjectItem = {
   id: string;
-  gradeLevel: string;
-  section: string;
-  teacher: string;
-  schoolYear: string;
+  subjectName: string;
+  className: string;
   status: "Active" | "Inactive";
 };
 
 // --- Component ---
-export default function Classes() {
+export default function Subjects() {
   const [q, setQ] = useState("");
-  const navigate = useNavigate();
 
-  // Mock data
-  const data = useMemo<ClassItem[]>(
+  // Mock data (replace with API later)
+  const data = useMemo<SubjectItem[]>(
     () => [
       {
         id: "1",
-        gradeLevel: "Grade 1",
-        section: "Class A",
-        teacher: "Mr. Smith",
-        schoolYear: "2024-2025",
+        subjectName: "Mathematics",
+        className: "Grade 1 - Class A",
         status: "Active",
       },
       {
         id: "2",
-        gradeLevel: "Grade 1",
-        section: "Class B",
-        teacher: "Ms. Johnson",
-        schoolYear: "2024-2025",
+        subjectName: "Science",
+        className: "Grade 1 - Class B",
         status: "Active",
       },
       {
         id: "3",
-        gradeLevel: "Grade 2",
-        section: "Class A",
-        teacher: "Mrs. Lee",
-        schoolYear: "2023-2024",
+        subjectName: "English",
+        className: "Grade 2 - Class A",
         status: "Inactive",
       },
     ],
@@ -64,21 +53,19 @@ export default function Classes() {
   const filtered = data.filter(
     (r) =>
       q === "" ||
-      r.section.toLowerCase().includes(q.toLowerCase()) ||
-      r.teacher.toLowerCase().includes(q.toLowerCase())
+      r.subjectName.toLowerCase().includes(q.toLowerCase()) ||
+      r.className.toLowerCase().includes(q.toLowerCase())
   );
 
   // Table columns
-  const columns: ColumnDef<ClassItem>[] = [
-    { accessorKey: "gradeLevel", header: "Grade Level" },
-    { accessorKey: "section", header: "Section" },
-    { accessorKey: "teacher", header: "Teacher" },
-    { accessorKey: "schoolYear", header: "School Year" },
+  const columns: ColumnDef<SubjectItem>[] = [
+    { accessorKey: "subjectName", header: "Subject Name" },
+    { accessorKey: "className", header: "Class" },
     {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.getValue("status") as ClassItem["status"];
+        const status = row.getValue("status") as SubjectItem["status"];
         const color =
           status === "Active"
             ? "bg-green-100 text-green-800"
@@ -91,16 +78,6 @@ export default function Classes() {
       header: "Actions",
       cell: () => (
         <div className="flex gap-2">
-          <Button
-            size="icon"
-            variant="default"
-            onClick={() => {
-              navigate("/admin/classes/1");
-              scrollToTop();
-            }}
-          >
-            <Eye className="w-4 h-4" />
-          </Button>
           <Button size="icon" variant="outline">
             <Pencil className="w-4 h-4" />
           </Button>
@@ -114,29 +91,17 @@ export default function Classes() {
 
   return (
     <div className="min-h-screen flex flex-col gap-4 p-4">
-      <h2 className="text-xl font-semibold">Classes</h2>
+      <h2 className="text-xl font-semibold">Subjects</h2>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-2">
           <Input
-            placeholder="Search by section or teacher..."
+            placeholder="Search by subject or class..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
             className="max-w-xs"
           />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Select Grade Level <ChevronDown className="ml-1 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Grade 1</DropdownMenuItem>
-              <DropdownMenuItem>Grade 2</DropdownMenuItem>
-              <DropdownMenuItem>Grade 3</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
@@ -149,13 +114,6 @@ export default function Classes() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        {/* <div className="flex items-center gap-4">
-          <Button>
-            <ClipboardList className="w-4 h-4" />
-            Start Attendance
-          </Button>
-          <Button variant="outline">Export to CSV</Button>
-        </div> */}
         <Button variant="outline">Export to CSV</Button>
       </div>
 

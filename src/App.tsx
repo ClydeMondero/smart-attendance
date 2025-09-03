@@ -4,14 +4,20 @@ import BackToTop from "./components/BackToTop";
 import Footer from "./components/Footer";
 import PrivateRoute from "./components/PrivateRoute";
 import SideBarLayout from "./layouts/SidebarLayou";
+import ClassAttendanceLog from "./pages/ClassAttendanceLog";
 import Classes from "./pages/Classes";
 import Dashboard from "./pages/Dashboard";
 import EntryLogs from "./pages/EntryLogs";
+import Grades from "./pages/Grades";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import NotAuthorized from "./pages/NotAuthorized";
 import NotFound from "./pages/NotFound";
+import SettingsPage from "./pages/Setting";
 import SignUp from "./pages/SignUp";
+import Students from "./pages/Students";
+import Subjects from "./pages/Subjects";
+import Users from "./pages/Users";
 import useUserStore from "./store/userStore";
 
 export default function App() {
@@ -36,6 +42,15 @@ export default function App() {
               <Route path="/admin/dashboard" element={<Dashboard />} />
               <Route path="/admin/entry" element={<EntryLogs />} />
               <Route path="/admin/classes" element={<Classes />} />
+              <Route
+                path="/admin/classes/:id"
+                element={<ClassAttendanceLog />}
+              />
+              <Route path="/admin/subjects" element={<Subjects />} />
+              <Route path="/admin/grades" element={<Grades />} />
+              <Route path="/admin/students" element={<Students />} />
+              <Route path="/admin/users" element={<Users />} />
+              <Route path="/admin/settings" element={<SettingsPage />} />
             </Route>
 
             <Route path="/unauthorized" element={<NotAuthorized />} />
