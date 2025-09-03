@@ -1,7 +1,8 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Outlet } from "react-router";
 import Header from "@/components/Header";
+import SimpleFooter from "@/components/SimpleFooter";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { Outlet } from "react-router";
 
 export default function SideBarLayout() {
   return (
@@ -10,6 +11,7 @@ export default function SideBarLayout() {
       <main className="w-full">
         <Header />
         <Outlet />
+        <SimpleFooter />
       </main>
     </SidebarProvider>
   );
