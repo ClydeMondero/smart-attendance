@@ -12,5 +12,5 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #333;
+  background: oklch(0.6231 0.188 259.8145);
 }

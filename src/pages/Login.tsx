@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,14 +7,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FaApple, FaEye, FaEyeSlash, FaFacebook } from "react-icons/fa";
-import { Link, useNavigate } from "react-router";
-import { scrollToTop } from "@/utils/scroll";
-import useUserStore from "@/store/userStore";
 import { useSidebar } from "@/components/ui/sidebar";
-import { Checkbox } from "@/components/ui/checkbox";
+import useUserStore from "@/store/userStore";
+import { scrollToTop } from "@/utils/scroll";
+import { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Link, useNavigate } from "react-router";
 
 export default function Login() {
   const [isShowPassword, setIsShowPassword] = useState(false);
@@ -103,13 +103,26 @@ export default function Login() {
             type="submit"
             className="w-full"
             onClick={() => {
-              login();
-              navigate("/services");
+              login("teacher");
+              navigate("/teacher/dashboard");
               setOpen(true);
               scrollToTop();
             }}
           >
-            Login
+            Login as Teacher
+          </Button>
+
+          <Button
+            type="submit"
+            className="w-full"
+            onClick={() => {
+              login("admin");
+              navigate("/admin/dashboard");
+              setOpen(true);
+              scrollToTop();
+            }}
+          >
+            Login as Admin
           </Button>
         </CardFooter>
       </Card>

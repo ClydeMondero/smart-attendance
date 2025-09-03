@@ -2,20 +2,22 @@ import { create } from "zustand";
 
 interface UserState {
   isLoggedIn: boolean;
-  login: () => void;
+  login: (role: "teacher" | "admin") => void;
   logout: () => void;
+  role: "teacher" | "admin" | null;
 }
 
 // Temporary store until we have a real auth system
-const useUserStore = create<UserState>((set, get) => ({
+const useUserStore = create<UserState>((set) => ({
   isLoggedIn: false,
-  login: () => {
-    set({ isLoggedIn: true });
-    console.log("Logged in:", get().isLoggedIn);
+  role: null,
+  login: (role) => {
+    set({ isLoggedIn: true, role });
+    // console.log("Logged in:", get().isLoggedIn, "as", get().role);
   },
   logout: () => {
-    set({ isLoggedIn: false });
-    console.log("Logged out:", get().isLoggedIn);
+    set({ isLoggedIn: false, role: null });
+    // console.log("Logged out:", get().isLoggedIn);
   },
 }));
 
