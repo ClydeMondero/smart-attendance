@@ -55,14 +55,6 @@ interface RoleMenus {
 // ====================
 const menus: Record<Role, RoleMenus> = {
   teacher: {
-    navigation: [
-      {
-        title: "Dashboard",
-        to: "/teacher/dashboad",
-        icon: LayoutDashboard,
-        tooltip: "View your teacher dashboard",
-      },
-    ],
     attendance: [
       {
         title: "Entry Logs",

@@ -2,7 +2,9 @@ import { Route, Routes } from "react-router";
 import "./App.css";
 import BackToTop from "./components/BackToTop";
 import Footer from "./components/Footer";
+import PrivateRoute from "./components/PrivateRoute";
 import SideBarLayout from "./layouts/SidebarLayou";
+import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import NotAuthorized from "./pages/NotAuthorized";
@@ -26,6 +28,11 @@ export default function App() {
             {/* <Route element={<PrivateRoute allowedRoles={["teacher"]} />}>
               <Route path="/officer/pending" element={<Pending />} />
             </Route> */}
+
+            {/* Admin Routes */}
+            <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
+              <Route path="/admin/dashboard" element={<Dashboard />} />
+            </Route>
 
             <Route path="/unauthorized" element={<NotAuthorized />} />
             <Route path="/*" element={<NotFound />} />
