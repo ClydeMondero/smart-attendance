@@ -50,7 +50,13 @@ export default function App() {
               <Route path="/admin/grades" element={<Grades />} />
               <Route path="/admin/students" element={<Students />} />
               <Route path="/admin/users" element={<Users />} />
-              <Route path="/admin/settings" element={<SettingsPage />} />
+            </Route>
+
+            <Route
+              element={<PrivateRoute allowedRoles={["admin", "teacher"]} />}
+            >
+              <Route path="/profile" element={<SettingsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
 
             <Route path="/unauthorized" element={<NotAuthorized />} />

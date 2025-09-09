@@ -7,16 +7,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNavigate } from "react-router";
+import useUserStore from "@/store/userStore";
 import { scrollToTop } from "@/utils/scroll";
 import { FaBook, FaChevronDown, FaUser, FaUserCircle } from "react-icons/fa";
-import useUserStore from "@/store/userStore";
-import { FaHouse } from "react-icons/fa6";
-import { MdEmail, MdDashboard } from "react-icons/md";
+import { MdDashboard } from "react-icons/md";
+import { useNavigate } from "react-router";
 
 export default function ProfileMenu() {
   const navigate = useNavigate();
-  const { logout } = useUserStore();
+  const { logout, role } = useUserStore();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -29,19 +28,11 @@ export default function ProfileMenu() {
         <DropdownMenuGroup>
           <DropdownMenuItem
             onClick={() => {
-              navigate("/");
+              navigate("/admin/dashboard");
               scrollToTop();
             }}
           >
-            <FaHouse /> Home
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              navigate("/services");
-              scrollToTop();
-            }}
-          >
-            <MdDashboard /> Services
+            <MdDashboard /> Dashboard
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
@@ -54,19 +45,11 @@ export default function ProfileMenu() {
 
           <DropdownMenuItem
             onClick={() => {
-              navigate("/about");
+              navigate("/settings");
               scrollToTop();
             }}
           >
-            <FaBook /> About
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              navigate("/contact");
-              scrollToTop();
-            }}
-          >
-            <MdEmail /> Contact us
+            <FaBook /> Settings
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
