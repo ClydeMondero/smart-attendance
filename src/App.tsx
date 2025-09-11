@@ -16,6 +16,7 @@ import NotAuthorized from "./pages/NotAuthorized";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Setting";
 import SignUp from "./pages/SignUp";
+import StudentDetails from "./pages/StudentDetails";
 import Students from "./pages/Students";
 import Subjects from "./pages/Subjects";
 import Users from "./pages/Users";
@@ -50,6 +51,7 @@ export default function App() {
               <Route path="/admin/subjects" element={<Subjects />} />
               <Route path="/admin/grades" element={<Grades />} />
               <Route path="/admin/students" element={<Students />} />
+              <Route path="/admin/students/:id" element={<StudentDetails />} />
               <Route path="/admin/users" element={<Users />} />
             </Route>
 

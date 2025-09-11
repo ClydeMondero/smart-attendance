@@ -1,6 +1,6 @@
 // ClassAttendanceLog.tsx
 import { DataTable } from "@/components/DataTable";
-import ScanAttendance from "@/components/ScanAttendance"; // <— the scanner above
+import ScanAttendance from "@/components/ScanAttendance";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,74 +15,69 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"; // shadcn dialog
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import api from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ClipboardList } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
+import { toast } from "sonner";
 
 type ClassAttendanceLogItem = {
   id: string;
   studentName: string;
-  status: "Present" | "Absent" | "Late";
+  status: "Present" | "Absent" | "Late" | "Excused";
   timeIn: string;
   timeOut: string;
   date: string;
 };
 
 export default function ClassAttendanceLog() {
+  const { id } = useParams<{ id: string }>();
+  const classId = id; // keep a friendly alias
   const [q, setQ] = useState("");
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
   const [scanOpen, setScanOpen] = useState(false);
+  const qc = useQueryClient();
 
-  // Mock data
-  const data = useMemo<ClassAttendanceLogItem[]>(
+  const { data } = useQuery({
+    queryKey: ["attendance", classId, selectedDate, q],
+    enabled: !!classId,
+    queryFn: async (): Promise<ClassAttendanceLogItem[]> => {
+      const res = await api.get("/attendances", {
+        params: { type: "class", class_id: classId, date: selectedDate, q },
+      });
+      return res.data.data as ClassAttendanceLogItem[];
+    },
+  });
+
+  const startMutation = useMutation({
+    mutationFn: async () =>
+      api.post("/attendances", {
+        action: "start",
+        class_id: Number(classId),
+        date: selectedDate,
+      }),
+    onSuccess: () => {
+      toast.success("Attendance started for selected date.");
+      qc.invalidateQueries({ queryKey: ["attendance", classId, selectedDate] });
+    },
+    onError: () => toast.error("Failed to start attendance"),
+  });
+
+  const columns: ColumnDef<ClassAttendanceLogItem>[] = useMemo(
     () => [
-      {
-        id: "1",
-        studentName: "Juan Dela Cruz",
-        status: "Present",
-        timeIn: "08:02",
-        timeOut: "16:59",
-        date: "2025-09-03",
-      },
-      {
-        id: "2",
-        studentName: "Maria Santos",
-        status: "Late",
-        timeIn: "08:25",
-        timeOut: "17:05",
-        date: "2025-09-03",
-      },
-      {
-        id: "3",
-        studentName: "Pedro Reyes",
-        status: "Absent",
-        timeIn: "-",
-        timeOut: "-",
-        date: "2025-09-02",
-      },
+      { accessorKey: "studentName", header: "Student Name" },
+      { accessorKey: "status", header: "Status" },
+      { accessorKey: "timeIn", header: "Time In" },
+      { accessorKey: "timeOut", header: "Time Out" },
     ],
     []
   );
-
-  const filtered = data.filter(
-    (r) =>
-      r.date === selectedDate &&
-      (q === "" ||
-        r.studentName.toLowerCase().includes(q.toLowerCase()) ||
-        r.status.toLowerCase().includes(q.toLowerCase()))
-  );
-
-  const columns: ColumnDef<ClassAttendanceLogItem>[] = [
-    { accessorKey: "studentName", header: "Student Name" },
-    { accessorKey: "status", header: "Status" },
-    { accessorKey: "timeIn", header: "Time In" },
-    { accessorKey: "timeOut", header: "Time Out" },
-  ];
 
   return (
     <div className="min-h-screen flex flex-col gap-4 p-4">
@@ -111,46 +106,56 @@ export default function ClassAttendanceLog() {
             onChange={(e) => setQ(e.target.value)}
             className="max-w-xs"
           />
-          <div className="flex items-center gap-2">
-            <Input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-            />
-          </div>
+          <Input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
         </div>
 
         <div className="flex items-center gap-4">
-          <Button onClick={() => setScanOpen(true)}>
+          <Button
+            onClick={() => {
+              setScanOpen(true); // open now
+              startMutation.mutate(); // pre-seed in background
+            }}
+            disabled={!classId || startMutation.isPending}
+          >
             <ClipboardList className="w-4 h-4 mr-2" />
             Start Attendance
           </Button>
-          <Button variant="outline">Export to CSV</Button>
+          <Button
+            variant="outline"
+            disabled={!classId}
+            onClick={() => {
+              if (!classId) return;
+              window.location.href = `/attendances-export?class_id=${classId}&date=${selectedDate}`;
+            }}
+          >
+            Export to CSV
+          </Button>
         </div>
       </div>
 
-      {/* Data Table */}
-      <DataTable columns={columns} data={filtered} />
+      <DataTable columns={columns} data={data ?? []} />
 
-      {/* Scanner Dialog */}
       <Dialog open={scanOpen} onOpenChange={setScanOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Scan Attendance</DialogTitle>
           </DialogHeader>
-
           <ScanAttendance
             type="class"
-            classId={123} // pass the current class id if you have it
-            gradeLevel="Grade 1" // optional defaults
-            section="Class A"
-            apiPath="/api/attendances"
-            onSaved={() => {
-              // Optionally: refetch a table query or update local state
-              // queryClient.invalidateQueries({ queryKey: ['attendances', selectedDate, 123] })
-              // or keep dialog open for continuous scans:
-              // setScanOpen(false)
-            }}
+            classId={Number(classId)}
+            apiPath="/attendances"
+            gradeLevel=""
+            section=""
+            date={selectedDate}
+            onSaved={() =>
+              qc.invalidateQueries({
+                queryKey: ["attendance", classId, selectedDate],
+              })
+            }
           />
         </DialogContent>
       </Dialog>

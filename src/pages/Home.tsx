@@ -1,16 +1,31 @@
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { motion } from "motion/react";
-import CallToAction from "@/components/CallToAction";
+import { Card, CardContent } from "@/components/ui/card";
 import faqs from "@/constants/faqs";
 import steps from "@/constants/steps";
+import useUserStore from "@/store/userStore";
+import { motion } from "motion/react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
 
 export default function Home() {
+  const { isLoggedIn, role } = useUserStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      if (role === "teacher") {
+        navigate("/teacher/dashboard");
+      } else {
+        navigate("/admin/dashboard");
+      }
+    }
+  }, [isLoggedIn]);
+
   return (
     <div className="min-h-screen">
       <Hero />
