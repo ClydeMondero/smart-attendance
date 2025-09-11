@@ -1,24 +1,49 @@
+import { setApiAuthToken } from "@/lib/api";
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: "teacher" | "admin"; // adjust roles here
+}
 
 interface UserState {
   isLoggedIn: boolean;
-  login: (role: "teacher" | "admin") => void;
+  role: User["role"] | null;
+  user: User | null;
+  token: string | null;
+  login: (user: User, token: string) => void;
   logout: () => void;
-  role: "teacher" | "admin" | null;
 }
 
-// Temporary store until we have a real auth system
-const useUserStore = create<UserState>((set) => ({
-  isLoggedIn: false,
-  role: null,
-  login: (role) => {
-    set({ isLoggedIn: true, role });
-    // console.log("Logged in:", get().isLoggedIn, "as", get().role);
-  },
-  logout: () => {
-    set({ isLoggedIn: false, role: null });
-    // console.log("Logged out:", get().isLoggedIn);
-  },
-}));
+const useUserStore = create<UserState>()(
+  persist(
+    (set) => ({
+      isLoggedIn: false,
+      role: null,
+      user: null,
+      token: null,
+
+      login: (user, token) => {
+        setApiAuthToken(token);
+        set({ isLoggedIn: true, role: user.role, user, token });
+      },
+
+      logout: () => {
+        setApiAuthToken(null);
+        set({ isLoggedIn: false, role: null, user: null, token: null });
+      },
+    }),
+    {
+      name: "user-store",
+      onRehydrateStorage: () => (state) => {
+        const token = state?.token ?? null;
+        setApiAuthToken(token);
+      },
+    }
+  )
+);
 
 export default useUserStore;

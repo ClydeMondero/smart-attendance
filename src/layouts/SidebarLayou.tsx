@@ -9,7 +9,7 @@ export default function SideBarLayout() {
   const { isLoggedIn } = useUserStore();
   return (
     <SidebarProvider>
-      <AppSidebar />
+      {isLoggedIn && <AppSidebar />}
       <main className="w-full">
         <Header />
         <Outlet />

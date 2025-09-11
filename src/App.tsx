@@ -3,6 +3,7 @@ import "./App.css";
 import BackToTop from "./components/BackToTop";
 import Footer from "./components/Footer";
 import PrivateRoute from "./components/PrivateRoute";
+import { Toaster } from "./components/ui/sonner";
 import SideBarLayout from "./layouts/SidebarLayou";
 import ClassAttendanceLog from "./pages/ClassAttendanceLog";
 import Classes from "./pages/Classes";
@@ -66,6 +67,7 @@ export default function App() {
       </div>
       <BackToTop />
       {!isLoggedIn && <Footer />}
+      <Toaster richColors position="top-right" />
     </div>
   );
 }

@@ -1,13 +1,12 @@
+import useUserStore from "@/store/userStore";
 import { Navigate, Outlet } from "react-router";
-import useUserStore from "../store/userStore";
 
 interface PrivateRouteProps {
-  allowedRoles?: ("teacher" | "admin")[];
+  allowedRoles?: ("teacher" | "admin")[]; // adjust roles
 }
 
 export default function PrivateRoute({ allowedRoles }: PrivateRouteProps) {
-  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
-  const role = useUserStore((state) => state.role);
+  const { role, isLoggedIn } = useUserStore();
 
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;

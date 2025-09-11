@@ -209,7 +209,7 @@ export function AppSidebar() {
           onClick={scrollToTop}
           className="flex items-center gap-2 cursor-pointer"
         >
-          <img src="./logo.png" alt="" className="w-10" />
+          <img src="/logo.png" alt="" className="w-10" />
           <span className="text-lg font-semibold text-primary">
             Smart Attendance
           </span>
