@@ -1,4 +1,6 @@
+// ClassAttendanceLog.tsx
 import { DataTable } from "@/components/DataTable";
+import ScanAttendance from "@/components/ScanAttendance"; // <— the scanner above
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,28 +10,33 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"; // shadcn dialog
 import { Input } from "@/components/ui/input";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ClipboardList } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
-// --- Types ---
 type ClassAttendanceLogItem = {
   id: string;
   studentName: string;
   status: "Present" | "Absent" | "Late";
   timeIn: string;
   timeOut: string;
-  date: string; // <-- new field
+  date: string;
 };
 
-// --- Component ---
 export default function ClassAttendanceLog() {
   const [q, setQ] = useState("");
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0] // default today (YYYY-MM-DD)
+    new Date().toISOString().split("T")[0]
   );
+  const [scanOpen, setScanOpen] = useState(false);
 
   // Mock data
   const data = useMemo<ClassAttendanceLogItem[]>(
@@ -56,13 +63,12 @@ export default function ClassAttendanceLog() {
         status: "Absent",
         timeIn: "-",
         timeOut: "-",
-        date: "2025-09-02", // old log, should be filtered out
+        date: "2025-09-02",
       },
     ],
     []
   );
 
-  // Search + Date filter
   const filtered = data.filter(
     (r) =>
       r.date === selectedDate &&
@@ -71,7 +77,6 @@ export default function ClassAttendanceLog() {
         r.status.toLowerCase().includes(q.toLowerCase()))
   );
 
-  // Table columns
   const columns: ColumnDef<ClassAttendanceLogItem>[] = [
     { accessorKey: "studentName", header: "Student Name" },
     { accessorKey: "status", header: "Status" },
@@ -106,8 +111,6 @@ export default function ClassAttendanceLog() {
             onChange={(e) => setQ(e.target.value)}
             className="max-w-xs"
           />
-
-          {/* Date filter */}
           <div className="flex items-center gap-2">
             <Input
               type="date"
@@ -118,7 +121,7 @@ export default function ClassAttendanceLog() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button>
+          <Button onClick={() => setScanOpen(true)}>
             <ClipboardList className="w-4 h-4 mr-2" />
             Start Attendance
           </Button>
@@ -128,6 +131,29 @@ export default function ClassAttendanceLog() {
 
       {/* Data Table */}
       <DataTable columns={columns} data={filtered} />
+
+      {/* Scanner Dialog */}
+      <Dialog open={scanOpen} onOpenChange={setScanOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Scan Attendance</DialogTitle>
+          </DialogHeader>
+
+          <ScanAttendance
+            type="class"
+            classId={123} // pass the current class id if you have it
+            gradeLevel="Grade 1" // optional defaults
+            section="Class A"
+            apiPath="/api/attendances"
+            onSaved={() => {
+              // Optionally: refetch a table query or update local state
+              // queryClient.invalidateQueries({ queryKey: ['attendances', selectedDate, 123] })
+              // or keep dialog open for continuous scans:
+              // setScanOpen(false)
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

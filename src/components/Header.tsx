@@ -1,14 +1,11 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router";
-import { Button } from "./ui/button";
-import { motion } from "framer-motion";
-import { scrollToTop } from "@/utils/scroll";
-import Menu from "./Menu";
 import useUserStore from "@/store/userStore";
+import { scrollToTop } from "@/utils/scroll";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { FaBell } from "react-icons/fa";
+import { Link } from "react-router";
 import ProfileMenu from "./ProfileMenu";
-import { FaBell, FaSearch } from "react-icons/fa";
-import { Input } from "./ui/input";
-import { FaLocationPin } from "react-icons/fa6";
+import { Button } from "./ui/button";
 import { SidebarTrigger } from "./ui/sidebar";
 
 /**
@@ -50,7 +47,7 @@ export default function Header() {
       // animation configuration
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       // CSS classes for the header
-      className="w-full h-15 sticky top-0 z-[1000] px-4 flex items-center justify-between border-b-2 bg-background md:px-12 "
+      className="w-full h-15 sticky top-0 z-[40] px-4 flex items-center justify-between border-b-2 bg-background md:px-12 "
     >
       <div className="flex items-center gap-8">
         {isLoggedIn ? (
