@@ -1,4 +1,3 @@
-// ClassAttendanceLog.tsx
 import { DataTable } from "@/components/DataTable";
 import ScanAttendance from "@/components/ScanAttendance";
 import {
@@ -20,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import api from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
+import { format, parseISO } from "date-fns";
 import { ClipboardList } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
@@ -34,15 +34,54 @@ type ClassAttendanceLogItem = {
   date: string;
 };
 
+type SchoolClassShow = {
+  id: number;
+  grade_level: string;
+  section: string;
+  teacher?: string | null;
+  school_year?: string | null;
+  status: "active" | "inactive";
+  students_count?: number;
+};
+
+function parseTimeCell(v: string | null | undefined, selectedDate: string) {
+  if (!v || v === "-") return null;
+  const s = String(v).trim();
+
+  if (
+    /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2}(\.\d{1,6})?)?(Z|[+-]\d{2}:\d{2})?$/.test(
+      s
+    )
+  ) {
+    const isoish = s.replace(" ", "T");
+    const dt = parseISO(isoish);
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+
+  const t = /^\d{2}:\d{2}$/.test(s) ? `${s}:00` : s;
+  const dt = new Date(`${selectedDate}T${t}`);
+  return isNaN(dt.getTime()) ? null : dt;
+}
+
 export default function ClassAttendanceLog() {
   const { id } = useParams<{ id: string }>();
-  const classId = id; // keep a friendly alias
+  const classId = id!;
   const [q, setQ] = useState("");
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
   const [scanOpen, setScanOpen] = useState(false);
   const qc = useQueryClient();
+
+  // 🔹 Fetch class details for breadcrumb (+ pass to scanner)
+  const { data: cls } = useQuery({
+    queryKey: ["class", classId],
+    enabled: !!classId,
+    queryFn: async (): Promise<SchoolClassShow> => {
+      const res = await api.get(`/classes/${classId}`);
+      return res.data as SchoolClassShow;
+    },
+  });
 
   const { data } = useQuery({
     queryKey: ["attendance", classId, selectedDate, q],
@@ -73,14 +112,31 @@ export default function ClassAttendanceLog() {
     () => [
       { accessorKey: "studentName", header: "Student Name" },
       { accessorKey: "status", header: "Status" },
-      { accessorKey: "timeIn", header: "Time In" },
-      { accessorKey: "timeOut", header: "Time Out" },
+      {
+        accessorKey: "timeIn",
+        header: "Time In",
+        cell: ({ row }) => {
+          const v = row.getValue<string>("timeIn");
+          const dt = parseTimeCell(v, selectedDate);
+          return dt ? format(dt, "h:mm a") : v && v !== "-" ? v : "—";
+        },
+      },
+      {
+        accessorKey: "timeOut",
+        header: "Time Out",
+        cell: ({ row }) => {
+          const v = row.getValue<string>("timeOut");
+          const dt = parseTimeCell(v, selectedDate);
+          return dt ? format(dt, "h:mm a") : v && v !== "-" ? v : "—";
+        },
+      },
     ],
-    []
+    [selectedDate]
   );
 
   return (
     <div className="min-h-screen flex flex-col gap-4 p-4">
+      {/* 🔹 Breadcrumb now shows Grade Level and Section */}
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -90,12 +146,15 @@ export default function ClassAttendanceLog() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>
-              <h2 className="text-xl font-semibold">Class Attendance Log</h2>
-            </BreadcrumbPage>
+            <BreadcrumbPage>Attendance Log</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
+
+      {/* Optional page heading */}
+      <h2 className="text-xl font-semibold">
+        {cls ? `${cls.grade_level} - ${cls.section}` : "Class Attendance Log"}
+      </h2>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -116,8 +175,8 @@ export default function ClassAttendanceLog() {
         <div className="flex items-center gap-4">
           <Button
             onClick={() => {
-              setScanOpen(true); // open now
-              startMutation.mutate(); // pre-seed in background
+              setScanOpen(true);
+              startMutation.mutate();
             }}
             disabled={!classId || startMutation.isPending}
           >
@@ -148,8 +207,8 @@ export default function ClassAttendanceLog() {
             type="class"
             classId={Number(classId)}
             apiPath="/attendances"
-            gradeLevel=""
-            section=""
+            gradeLevel={cls?.grade_level ?? ""}
+            section={cls?.section ?? ""}
             date={selectedDate}
             onSaved={() =>
               qc.invalidateQueries({
