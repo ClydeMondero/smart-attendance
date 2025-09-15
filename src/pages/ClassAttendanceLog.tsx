@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { format, parseISO } from "date-fns";
+import { format, parse, parseISO } from "date-fns";
 import { Calendar as CalendarIcon, ClipboardList } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
@@ -100,7 +100,7 @@ export default function ClassAttendanceLog() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const selectedDateStr = ymd(selectedDate);
 
-  const [expectedTime, setExpectedTime] = useState<string>("08:00");
+  const [expectedTime, setExpectedTime] = useState<string>("20:00");
 
   const qc = useQueryClient();
 
@@ -114,19 +114,6 @@ export default function ClassAttendanceLog() {
       return res.data as SchoolClassShow;
     },
   });
-
-  useEffect(() => {
-    if (!cls) return;
-    if (cls.expected_time_in) {
-      const t =
-        cls.expected_time_in.length >= 5
-          ? cls.expected_time_in.slice(0, 5)
-          : "08:00";
-      setExpectedTime(t);
-    } else {
-      setExpectedTime("08:00");
-    }
-  }, [cls]);
 
   const { data, isLoading: rowsLoading } = useQuery({
     queryKey: ["attendance", classId, selectedDateStr, q],
@@ -155,6 +142,25 @@ export default function ClassAttendanceLog() {
     onError: () => toast.error("Failed to start attendance"),
   });
 
+  const updateTimeInMutation = useMutation({
+    mutationFn: async (payload: { id: string; time_in: string }) => {
+      return api.patch(`/attendances/${payload.id}`, {
+        time_in: payload.time_in,
+        expected_time_in: expectedTime,
+      });
+    },
+    onSuccess: (_data, variables) => {
+      toast.success(`Time In updated to "${variables.time_in}"`);
+      qc.invalidateQueries({
+        queryKey: ["attendance", classId, selectedDateStr, q],
+      });
+    },
+    onError: (err: any) => {
+      console.error(err);
+      toast.error("Failed to update time in");
+    },
+  });
+
   const updateStatusMutation = useMutation({
     mutationFn: async (payload: { id: string; status: string }) => {
       return api.patch(`/attendances/${payload.id}`, {
@@ -176,36 +182,64 @@ export default function ClassAttendanceLog() {
   const columns: ColumnDef<ClassAttendanceLogItem>[] = useMemo(
     () => [
       { accessorKey: "studentName", header: "Student Name" },
-      { accessorKey: "status", header: "Status" },
       {
         accessorKey: "timeIn",
         header: "Time In",
         cell: ({ row }) => {
+          const original = row.original as ClassAttendanceLogItem;
+          const rowId = original.id;
           const v = row.getValue<string>("timeIn");
           const dt = parseTimeCell(v, selectedDateStr);
-          const shown = dt ? format(dt, "h:mm a") : v && v !== "-" ? v : "—";
+          const currentTimeIn = dt ? format(dt, "HH:mm") : "—";
 
-          let isLate = false;
-          if (dt && cls?.expected_time_in) {
-            const expected = parseTimeCell(
-              cls.expected_time_in,
-              selectedDateStr
-            );
-            if (expected) {
-              isLate = dt.getTime() > expected.getTime();
+          const [draft, setDraft] = useState(currentTimeIn);
+
+          useEffect(() => {
+            setDraft(currentTimeIn);
+          }, [currentTimeIn]);
+
+          const commitUpdate = async (val: string) => {
+            if (!val || val === currentTimeIn) return;
+
+            const parsed = parse(val, "HH:mm", new Date());
+            const formatted = format(parsed, "HH:mm:ss");
+
+            try {
+              setUpdatingId(rowId);
+              await updateTimeInMutation.mutateAsync({
+                id: rowId,
+                time_in: formatted,
+              });
+            } finally {
+              setUpdatingId(null);
             }
-          }
+          };
+
+          const handleChange = (val: string) => {
+            setDraft(val);
+          };
+
+          const handleKeyDown = (e: React.KeyboardEvent) => {
+            if (e.key === "Enter") {
+              commitUpdate(draft);
+            }
+          };
 
           return (
-            <span className={isLate ? "text-red-600 font-medium" : ""}>
-              {shown}
-            </span>
+            <div onKeyDown={handleKeyDown}>
+              <TimePicker
+                value={draft}
+                onChange={handleChange}
+                disabled={updatingId === rowId}
+              />
+            </div>
           );
         },
       },
+
       {
-        header: "Action",
-        accessorKey: "action",
+        header: "Status",
+        accessorKey: "status",
         cell: ({ row }) => {
           const original = row.original as ClassAttendanceLogItem;
           const rowId = original.id;
