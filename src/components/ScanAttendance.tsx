@@ -1,4 +1,3 @@
-// src/components/ScanAttendance.tsx
 import api from "@/lib/api";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -8,17 +7,18 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-const COOLDOWN_MS = 2500; // how long we ignore repeated decodes
-const QUICK_PAUSE_AFTER_SUCCESS_MS = 600; // brief camera pause to prevent re-decoding same frame
+const COOLDOWN_MS = 2500;
+const QUICK_PAUSE_AFTER_SUCCESS_MS = 600;
 
 type Props = {
   type?: "class" | "entry";
   classId?: number | string | null;
-  gradeLevel?: string; // <-- used for membership check
-  section?: string; // <-- used for membership check
-  apiPath?: string; // should point to /api/attendances (resource)
-  date?: string; // YYYY-MM-DD
+  gradeLevel?: string;
+  section?: string;
+  apiPath?: string;
+  date?: string;
   onSaved?: (row: any) => void;
+  expectedTime?: string;
 };
 
 type Student = {
@@ -37,21 +37,20 @@ export default function ScanAttendance({
   apiPath = "/attendances",
   date = new Date().toISOString().slice(0, 10),
   onSaved,
+  expectedTime,
 }: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
 
-  // Use REFS (not state) for things used inside the decode loop
   const lastScanTsRef = useRef<number>(0);
   const lastBarcodeRef = useRef<string>("");
-  const busyRef = useRef<boolean>(false); // lock while a request is in-flight
+  const busyRef = useRef<boolean>(false);
 
   const [cams, setCams] = useState<MediaDeviceInfo[]>([]);
   const [deviceId, setDeviceId] = useState<string>("");
   const [scanning, setScanning] = useState(false);
 
-  // Cache membership decisions to avoid repeated lookups
   const allowCache = useRef(new Map<string, boolean>());
 
   const createAttendance = useMutation({
@@ -63,7 +62,6 @@ export default function ScanAttendance({
     },
     onSuccess: (data) => {
       beep();
-      // Prefer server-returned action + student name if present
       const action = data?.action as string | undefined;
       const student = data?.student as string | undefined;
       if (action && student) {
@@ -88,7 +86,6 @@ export default function ScanAttendance({
     },
     onSettled: () => {
       busyRef.current = false; // release lock
-      // quick pause & resume to avoid re-decoding the same frame that just succeeded
       quickPauseCamera();
     },
   });
@@ -96,7 +93,6 @@ export default function ScanAttendance({
   useEffect(() => {
     readerRef.current = new BrowserMultiFormatReader();
     return () => stop();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const ensureSecureContext = () => {
@@ -134,7 +130,6 @@ export default function ScanAttendance({
         audio: false,
       };
 
-      // Probe permission first
       const testStream = await navigator.mediaDevices.getUserMedia(
         preConstraints
       );
@@ -156,21 +151,18 @@ export default function ScanAttendance({
           const text = result.getText().trim();
           const now = Date.now();
 
-          // HARD GUARDS
           if (busyRef.current) return; // a request is inflight
           if (now - lastScanTsRef.current < COOLDOWN_MS) return; // cooldown window
           if (
             text === lastBarcodeRef.current &&
             now - lastScanTsRef.current < COOLDOWN_MS * 2
           )
-            return; // same code twice too soon
+            return;
 
-          // Update guards BEFORE mutate to close race window
           lastScanTsRef.current = now;
           lastBarcodeRef.current = text;
           busyRef.current = true;
 
-          // async check + maybe mutate
           void handleDecoded(text);
         }
       );
@@ -196,7 +188,6 @@ export default function ScanAttendance({
   };
 
   const quickPauseCamera = () => {
-    // brief stop to avoid the exact same frame being decoded again
     try {
       controlsRef.current?.stop();
       controlsRef.current = null;
@@ -206,7 +197,6 @@ export default function ScanAttendance({
     }, QUICK_PAUSE_AFTER_SUCCESS_MS);
   };
 
-  // ---------- Frontend-only membership gate helpers ----------
   const norm = (s?: string | null) => (s ?? "").trim().toLowerCase();
 
   async function findStudentByBarcode(
@@ -257,7 +247,6 @@ export default function ScanAttendance({
     allowCache.current.set(key, true);
     return true;
   }
-  // ----------------------------------------------------------
 
   const handleDecoded = async (barcodeText: string) => {
     if (!classId && type === "class") {
@@ -267,7 +256,6 @@ export default function ScanAttendance({
       return;
     }
 
-    // FRONTEND GUARD: block if not in class
     const allowed = await isBarcodeAllowedForClass(barcodeText);
     if (!allowed) {
       busyRef.current = false;
@@ -275,12 +263,12 @@ export default function ScanAttendance({
       return;
     }
 
-    // proceed with API call
     createAttendance.mutate({
       action: "scan",
       class_id: classId ?? undefined,
       barcode: barcodeText,
       date,
+      expected_time_in: expectedTime,
     });
   };
 

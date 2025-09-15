@@ -1,5 +1,6 @@
 import { DataTable } from "@/components/DataTable";
 import ScanAttendance from "@/components/ScanAttendance";
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,6 +10,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -16,14 +18,31 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import TimePicker from "@/components/ui/timepicker";
+
 import api from "@/lib/api";
+import { cn } from "@/lib/utils";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format, parseISO } from "date-fns";
-import { ClipboardList } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Calendar as CalendarIcon, ClipboardList } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ClassAttendanceLogItem = {
   id: string;
@@ -42,7 +61,15 @@ type SchoolClassShow = {
   school_year?: string | null;
   status: "active" | "inactive";
   students_count?: number;
+  expected_time_in?: string | null;
 };
+
+function ymd(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}`;
+}
 
 function parseTimeCell(v: string | null | undefined, selectedDate: string) {
   if (!v || v === "-") return null;
@@ -58,6 +85,7 @@ function parseTimeCell(v: string | null | undefined, selectedDate: string) {
     return isNaN(dt.getTime()) ? null : dt;
   }
 
+  // Time-only (HH:mm or HH:mm:ss)
   const t = /^\d{2}:\d{2}$/.test(s) ? `${s}:00` : s;
   const dt = new Date(`${selectedDate}T${t}`);
   return isNaN(dt.getTime()) ? null : dt;
@@ -67,14 +95,18 @@ export default function ClassAttendanceLog() {
   const { id } = useParams<{ id: string }>();
   const classId = id!;
   const [q, setQ] = useState("");
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
   const [scanOpen, setScanOpen] = useState(false);
+
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const selectedDateStr = ymd(selectedDate);
+
+  const [expectedTime, setExpectedTime] = useState<string>("08:00");
+
   const qc = useQueryClient();
 
-  // 🔹 Fetch class details for breadcrumb (+ pass to scanner)
-  const { data: cls } = useQuery({
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const { data: cls, isLoading: classLoading } = useQuery({
     queryKey: ["class", classId],
     enabled: !!classId,
     queryFn: async (): Promise<SchoolClassShow> => {
@@ -83,12 +115,25 @@ export default function ClassAttendanceLog() {
     },
   });
 
-  const { data } = useQuery({
-    queryKey: ["attendance", classId, selectedDate, q],
+  useEffect(() => {
+    if (!cls) return;
+    if (cls.expected_time_in) {
+      const t =
+        cls.expected_time_in.length >= 5
+          ? cls.expected_time_in.slice(0, 5)
+          : "08:00";
+      setExpectedTime(t);
+    } else {
+      setExpectedTime("08:00");
+    }
+  }, [cls]);
+
+  const { data, isLoading: rowsLoading } = useQuery({
+    queryKey: ["attendance", classId, selectedDateStr, q],
     enabled: !!classId,
     queryFn: async (): Promise<ClassAttendanceLogItem[]> => {
       const res = await api.get("/attendances", {
-        params: { type: "class", class_id: classId, date: selectedDate, q },
+        params: { type: "class", class_id: classId, date: selectedDateStr, q },
       });
       return res.data.data as ClassAttendanceLogItem[];
     },
@@ -99,13 +144,33 @@ export default function ClassAttendanceLog() {
       api.post("/attendances", {
         action: "start",
         class_id: Number(classId),
-        date: selectedDate,
+        date: selectedDateStr,
       }),
     onSuccess: () => {
       toast.success("Attendance started for selected date.");
-      qc.invalidateQueries({ queryKey: ["attendance", classId, selectedDate] });
+      qc.invalidateQueries({
+        queryKey: ["attendance", classId, selectedDateStr],
+      });
     },
     onError: () => toast.error("Failed to start attendance"),
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async (payload: { id: string; status: string }) => {
+      return api.patch(`/attendances/${payload.id}`, {
+        status: payload.status.toLowerCase(),
+      });
+    },
+    onSuccess: (_data, variables) => {
+      toast.success(`Status updated to "${variables.status}"`);
+      qc.invalidateQueries({
+        queryKey: ["attendance", classId, selectedDateStr],
+      });
+    },
+    onError: (err: any) => {
+      console.error(err);
+      toast.error("Failed to update status");
+    },
   });
 
   const columns: ColumnDef<ClassAttendanceLogItem>[] = useMemo(
@@ -117,26 +182,76 @@ export default function ClassAttendanceLog() {
         header: "Time In",
         cell: ({ row }) => {
           const v = row.getValue<string>("timeIn");
-          const dt = parseTimeCell(v, selectedDate);
-          return dt ? format(dt, "h:mm a") : v && v !== "-" ? v : "—";
+          const dt = parseTimeCell(v, selectedDateStr);
+          const shown = dt ? format(dt, "h:mm a") : v && v !== "-" ? v : "—";
+
+          let isLate = false;
+          if (dt && cls?.expected_time_in) {
+            const expected = parseTimeCell(
+              cls.expected_time_in,
+              selectedDateStr
+            );
+            if (expected) {
+              isLate = dt.getTime() > expected.getTime();
+            }
+          }
+
+          return (
+            <span className={isLate ? "text-red-600 font-medium" : ""}>
+              {shown}
+            </span>
+          );
         },
       },
       {
-        accessorKey: "timeOut",
-        header: "Time Out",
+        header: "Action",
+        accessorKey: "action",
         cell: ({ row }) => {
-          const v = row.getValue<string>("timeOut");
-          const dt = parseTimeCell(v, selectedDate);
-          return dt ? format(dt, "h:mm a") : v && v !== "-" ? v : "—";
+          const original = row.original as ClassAttendanceLogItem;
+          const rowId = original.id;
+          const currentStatus = original.status ?? "Absent";
+
+          const onChange = async (val: string) => {
+            if (!val || val === currentStatus) return;
+            try {
+              setUpdatingId(rowId);
+              await updateStatusMutation.mutateAsync({
+                id: rowId,
+                status: val,
+              });
+            } finally {
+              setUpdatingId(null);
+            }
+          };
+
+          return (
+            <div className="w-full">
+              <Select
+                defaultValue={currentStatus}
+                value={currentStatus}
+                onValueChange={onChange}
+                disabled={updatingId === rowId}
+              >
+                <SelectTrigger size="sm" className="w-full">
+                  <SelectValue placeholder="Update..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Present">Present</SelectItem>
+                  <SelectItem value="Late">Late</SelectItem>
+                  <SelectItem value="Excused">Excused</SelectItem>
+                  <SelectItem value="Absent">Absent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          );
         },
       },
     ],
-    [selectedDate]
+    [selectedDateStr, cls?.expected_time_in, updatingId]
   );
 
   return (
     <div className="min-h-screen flex flex-col gap-4 p-4">
-      {/* 🔹 Breadcrumb now shows Grade Level and Section */}
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -151,12 +266,14 @@ export default function ClassAttendanceLog() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Optional page heading */}
       <h2 className="text-xl font-semibold">
-        {cls ? `${cls.grade_level} - ${cls.section}` : "Class Attendance Log"}
+        {cls
+          ? `${cls.grade_level} - ${cls.section}`
+          : classLoading
+          ? "Loading class..."
+          : "Class Attendance Log"}
       </h2>
 
-      {/* Filters */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Input
@@ -165,14 +282,38 @@ export default function ClassAttendanceLog() {
             onChange={(e) => setQ(e.target.value)}
             className="max-w-xs"
           />
-          <Input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate
+                  ? format(selectedDate, "MMMM d, yyyy")
+                  : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(d) => d && setSelectedDate(d)}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <TimePicker value={expectedTime} onChange={setExpectedTime} />
+          </div>
+
           <Button
             onClick={() => {
               setScanOpen(true);
@@ -183,20 +324,10 @@ export default function ClassAttendanceLog() {
             <ClipboardList className="w-4 h-4 mr-2" />
             Start Attendance
           </Button>
-          <Button
-            variant="outline"
-            disabled={!classId}
-            onClick={() => {
-              if (!classId) return;
-              window.location.href = `/attendances-export?class_id=${classId}&date=${selectedDate}`;
-            }}
-          >
-            Export to CSV
-          </Button>
         </div>
       </div>
 
-      <DataTable columns={columns} data={data ?? []} />
+      <DataTable columns={columns} data={data ?? []} isLoading={rowsLoading} />
 
       <Dialog open={scanOpen} onOpenChange={setScanOpen}>
         <DialogContent className="max-w-3xl">
@@ -209,12 +340,13 @@ export default function ClassAttendanceLog() {
             apiPath="/attendances"
             gradeLevel={cls?.grade_level ?? ""}
             section={cls?.section ?? ""}
-            date={selectedDate}
+            date={selectedDateStr}
             onSaved={() =>
               qc.invalidateQueries({
-                queryKey: ["attendance", classId, selectedDate],
+                queryKey: ["attendance", classId, selectedDateStr],
               })
             }
+            expectedTime={expectedTime}
           />
         </DialogContent>
       </Dialog>
