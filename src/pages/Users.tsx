@@ -8,59 +8,37 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import {
+  useDeleteUser,
+  useResetPassword,
+  type UserItem,
+  useToggleStatus,
+  useUsers,
+} from "@/hooks/useUsers";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
 
-// --- Types ---
-type UserItem = {
-  id: string;
-  fullName: string;
-  email: string;
-  role: "admin" | "teacher" | "operator";
-  status: "active" | "disabled";
-};
-
-// --- Component ---
 export default function Users() {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
 
-  // Mock data
-  const data = useMemo<UserItem[]>(
-    () => [
-      {
-        id: "1",
-        fullName: "Admin User",
-        email: "admin@school.com",
-        role: "admin",
-        status: "active",
-      },
-      {
-        id: "2",
-        fullName: "Jane Teacher",
-        email: "jane.teacher@school.com",
-        role: "teacher",
-        status: "active",
-      },
-      {
-        id: "3",
-        fullName: "John Operator",
-        email: "john.operator@school.com",
-        role: "operator",
-        status: "disabled",
-      },
-    ],
-    []
-  );
+  // Queries
+  const { data, isLoading } = useUsers();
+  const users = data ?? [];
+
+  // Mutations
+  const deleteUser = useDeleteUser();
+  const toggleStatus = useToggleStatus();
+  const resetPassword = useResetPassword();
 
   // Search filter
-  const filtered = data.filter(
+  const filtered = users.filter(
     (r) =>
       q === "" ||
-      r.fullName.toLowerCase().includes(q.toLowerCase()) ||
+      r.name.toLowerCase().includes(q.toLowerCase()) ||
       r.email.toLowerCase().includes(q.toLowerCase()) ||
       r.role.toLowerCase().includes(q.toLowerCase()) ||
       r.status.toLowerCase().includes(q.toLowerCase())
@@ -68,7 +46,7 @@ export default function Users() {
 
   // Table columns
   const columns: ColumnDef<UserItem>[] = [
-    { accessorKey: "fullName", header: "Full Name" },
+    { accessorKey: "name", header: "Full Name" },
     { accessorKey: "email", header: "Email" },
     {
       accessorKey: "role",
@@ -76,11 +54,9 @@ export default function Users() {
       cell: ({ row }) => {
         const role = row.getValue("role") as UserItem["role"];
         let color = "bg-gray-200 text-gray-700";
-
         if (role === "admin") color = "bg-red-100 text-red-800";
         if (role === "teacher") color = "bg-blue-100 text-blue-800";
         if (role === "operator") color = "bg-green-100 text-green-800";
-
         return <Badge className={color}>{role}</Badge>;
       },
     },
@@ -90,10 +66,8 @@ export default function Users() {
       cell: ({ row }) => {
         const status = row.getValue("status") as UserItem["status"];
         let color = "bg-gray-200 text-gray-700";
-
         if (status === "active") color = "bg-green-100 text-green-800";
         if (status === "disabled") color = "bg-red-100 text-red-800";
-
         return <Badge className={color}>{status}</Badge>;
       },
     },
@@ -121,15 +95,25 @@ export default function Users() {
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => console.log("Disable user:", user, user.status)}
+                onClick={() =>
+                  toggleStatus.mutate({
+                    id: user.id,
+                    status: user.status === "active" ? "disabled" : "active",
+                  })
+                }
               >
-                Disable
+                {user.status === "active" ? "Disable" : "Enable"}
               </DropdownMenuItem>
-
               <DropdownMenuItem
-                onClick={() => console.log("Reset password: ", user)}
+                onClick={() => resetPassword.mutate({ id: user.id })}
               >
                 Reset Password
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() => deleteUser.mutate(user.id)}
+              >
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -157,7 +141,7 @@ export default function Users() {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={filtered} />
+      <DataTable columns={columns} data={filtered} isLoading={isLoading} />
     </div>
   );
 }
