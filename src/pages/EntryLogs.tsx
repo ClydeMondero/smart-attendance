@@ -1,5 +1,6 @@
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,12 +8,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import type { ColumnDef } from "@tanstack/react-table";
-import { ChevronDown, Pencil, Trash } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import api from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { format, parseISO } from "date-fns";
+import {
+  Calendar as CalendarIcon,
+  ChevronDown,
+  Pencil,
+  Trash,
+} from "lucide-react";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router";
 
-// --- Types ---
 type EntryLog = {
   id: string;
   date: string;
@@ -24,70 +36,76 @@ type EntryLog = {
   timeOut: string;
 };
 
-// --- Component ---
 export default function EntryLogs() {
   const [q, setQ] = useState("");
-  const navigate = useNavigate();
+  const [filters, setFilters] = useState({
+    date: "",
+    classId: "",
+  });
 
-  // Mock data (based on screenshot)
-  const data = useMemo<EntryLog[]>(
+  // Fetch classes and sections
+  const { data: classes } = useQuery({
+    queryKey: ["classes"],
+    queryFn: async () => {
+      const res = await api.get("/classes?status=active");
+      return res.data.data;
+    },
+  });
+
+  // Fetch entry logs
+  const { data, isLoading } = useQuery({
+    queryKey: ["attendance", "entry", filters, q],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters.date) params.append("date", filters.date);
+      if (filters.classId) params.append("class_id", filters.classId);
+
+      const res = await api.get(`/attendances?${params.toString()}`);
+
+      return res.data.data.map((a: any) => ({
+        id: String(a.id),
+        date: a.log_date ? format(parseISO(a.log_date), "MM/dd/yyyy") : "—",
+        name: a.student?.full_name ?? "—",
+        studentId: a.student?.barcode ?? "—",
+        gradeLevel: a.student?.school_class?.grade_level ?? "—",
+        section: a.student?.school_class?.section ?? "—",
+        timeIn: a.time_in
+          ? format(parseISO(`1970-01-01T${a.time_in}`), "h:mm a")
+          : "-",
+        timeOut: a.time_out
+          ? format(parseISO(`1970-01-01T${a.time_out}`), "h:mm a")
+          : "-",
+      }));
+    },
+  });
+
+  // Table columns
+  const columns = useMemo(
     () => [
+      { accessorKey: "date", header: "Date" },
+      { accessorKey: "name", header: "Name" },
+      { accessorKey: "studentId", header: "Student ID" },
+      { accessorKey: "gradeLevel", header: "Grade Level" },
+      { accessorKey: "section", header: "Section" },
+      { accessorKey: "timeIn", header: "Time In" },
+      { accessorKey: "timeOut", header: "Time Out" },
       {
-        id: "1",
-        date: "04/04/25",
-        name: "Angelo",
-        studentId: "202020202",
-        gradeLevel: "Grade 1",
-        section: "Class A",
-        timeIn: "8:30 am",
-        timeOut: "1:00 pm",
-      },
-      {
-        id: "2",
-        date: "04/04/25",
-        name: "Maria",
-        studentId: "202020203",
-        gradeLevel: "Grade 1",
-        section: "Class B",
-        timeIn: "8:35 am",
-        timeOut: "1:10 pm",
+        id: "actions",
+        header: "Actions",
+        cell: () => (
+          <div className="flex gap-2">
+            <Button size="icon" variant="outline">
+              <Pencil className="w-4 h-4" />
+            </Button>
+            <Button size="icon" variant="outline">
+              <Trash className="w-4 h-4" />
+            </Button>
+          </div>
+        ),
       },
     ],
     []
   );
-
-  // Search filter
-  const filtered = data.filter(
-    (r) =>
-      q === "" ||
-      r.name.toLowerCase().includes(q.toLowerCase()) ||
-      r.studentId.includes(q)
-  );
-
-  // Table columns
-  const columns: ColumnDef<EntryLog>[] = [
-    { accessorKey: "date", header: "Date" },
-    { accessorKey: "name", header: "Name" },
-    { accessorKey: "studentId", header: "Student ID" },
-    { accessorKey: "gradeLevel", header: "Grade Level" },
-    { accessorKey: "section", header: "Section" },
-    { accessorKey: "timeIn", header: "Time In" },
-    { accessorKey: "timeOut", header: "Time Out" },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: () => (
-        <div className="flex gap-2">
-          <Button size="icon" variant="outline">
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button size="icon" variant="outline">
-            <Trash className="w-4 h-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
 
   return (
     <div className="min-h-screen flex flex-col gap-4 p-4">
@@ -102,27 +120,60 @@ export default function EntryLogs() {
             onChange={(e) => setQ(e.target.value)}
             className="max-w-xs"
           />
-          <Input type="date" />
+
+          {/* Date Picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[200px] justify-start text-left font-normal",
+                  !filters.date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {filters.date
+                  ? format(parseISO(filters.date), "PPP")
+                  : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={filters.date ? parseISO(filters.date) : undefined}
+                onSelect={(date) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    date: date ? format(date, "yyyy-MM-dd") : "",
+                  }))
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* Class Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
-                Select Class <ChevronDown className="ml-1 h-4 w-4" />
+                {filters.classId ? `Class ${filters.classId}` : "Select Class"}
+                <ChevronDown className="ml-1 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>Class A</DropdownMenuItem>
-              <DropdownMenuItem>Class B</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Select Section <ChevronDown className="ml-1 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Section 1</DropdownMenuItem>
-              <DropdownMenuItem>Section 2</DropdownMenuItem>
+              {classes?.map((cls: any) => (
+                <DropdownMenuItem
+                  key={cls.id}
+                  onClick={() =>
+                    setFilters((f) => ({
+                      ...f,
+                      classId: cls.id,
+                    }))
+                  }
+                >
+                  {cls.grade_level} - {cls.section}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -130,7 +181,7 @@ export default function EntryLogs() {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={filtered} />
+      <DataTable columns={columns} data={data ?? []} isLoading={isLoading} />
     </div>
   );
 }
