@@ -19,6 +19,7 @@ import SignUp from "./pages/SignUp";
 import StudentDetails from "./pages/StudentDetails";
 import Students from "./pages/Students";
 import Subjects from "./pages/Subjects";
+import UserForm from "./pages/UserForm";
 import Users from "./pages/Users";
 import useUserStore from "./store/userStore";
 
@@ -53,6 +54,8 @@ export default function App() {
               <Route path="/admin/students" element={<Students />} />
               <Route path="/admin/students/:id" element={<StudentDetails />} />
               <Route path="/admin/users" element={<Users />} />
+              <Route path="/admin/users/new" element={<UserForm />} />
+              <Route path="/admin/users/:id/edit" element={<UserForm />} />
             </Route>
 
             <Route
