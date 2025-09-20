@@ -1,5 +1,6 @@
 import api from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export type UserItem = {
   id: string;
@@ -32,6 +33,10 @@ export function useCreateUser() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User created successfully");
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to create user");
     },
   });
 }
@@ -46,7 +51,9 @@ export function useUpdateUser() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User updated successfully");
     },
+    onError: () => toast.error("Failed to update user"),
   });
 }
 
@@ -59,7 +66,9 @@ export function useDeleteUser() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User deleted");
     },
+    onError: () => toast.error("Failed to delete user"),
   });
 }
 
@@ -73,22 +82,37 @@ export function useToggleStatus() {
       id: string;
       status: "active" | "disabled";
     }) => {
-      const { data } = await api.put(`/users/${id}`, { status });
+      const { data } = await api.put(`/users/${id}/status`, { status });
       return data as UserItem;
     },
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["users"] });
+      toast.success(
+        vars.status === "active" ? "User enabled" : "User disabled"
+      );
     },
+    onError: () => toast.error("Failed to toggle user status"),
   });
 }
 
 export function useResetPassword() {
-  // depends on whether you create a dedicated endpoint in Laravel
   return useMutation({
     mutationFn: async ({ id }: { id: string }) => {
-      // Example: POST /users/{id}/reset-password
       const { data } = await api.post(`/users/${id}/reset-password`);
       return data;
     },
+    onSuccess: () => toast.success("Password reset successfully"),
+    onError: () => toast.error("Failed to reset password"),
+  });
+}
+
+export function useUser(id?: string) {
+  return useQuery({
+    queryKey: ["user", id],
+    queryFn: async () => {
+      const { data } = await api.get(`/users/${id}`);
+      return data as UserItem;
+    },
+    enabled: !!id,
   });
 }

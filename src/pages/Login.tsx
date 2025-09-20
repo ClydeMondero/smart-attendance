@@ -110,12 +110,6 @@ export default function Login() {
                   <div className="grid gap-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="password">Password</Label>
-                      <a
-                        href="#"
-                        className="ml-auto inline-block text-sm hover:underline"
-                      >
-                        Forgot your password?
-                      </a>
                     </div>
                     <div className="relative h-10 w-full">
                       {isShowPassword ? (

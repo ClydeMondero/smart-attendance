@@ -16,7 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import api from "@/lib/api"; // axios wrapper
+import { Skeleton } from "@/components/ui/skeleton";
+import { useCreateUser, useUpdateUser, useUser } from "@/hooks/useUsers";
+import { Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -32,6 +34,7 @@ export default function UserForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [form, setForm] = useState<UserFormData>({
     name: "",
@@ -41,33 +44,78 @@ export default function UserForm() {
     status: "active",
   });
 
-  // Load user when editing
+  // Hooks
+  const { data, isLoading } = useUser(id);
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+
+  // Fill form when editing
   useEffect(() => {
-    if (isEdit) {
-      api.get(`/users/${id}`).then((res) => {
-        setForm({
-          name: res.data.name,
-          email: res.data.email,
-          role: res.data.role,
-          status: res.data.status,
-        });
+    if (data) {
+      setForm({
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        status: data.status,
       });
     }
-  }, [id, isEdit]);
+  }, [data]);
 
   const handleChange = (field: keyof UserFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEdit) {
-      await api.put(`/users/${id}`, form);
+
+    if (isEdit && id) {
+      updateUser.mutate(
+        { id, ...form },
+        {
+          onSuccess: () => navigate("/admin/users"),
+        }
+      );
     } else {
-      await api.post("/users", form);
+      createUser.mutate(form as Required<UserFormData>, {
+        onSuccess: () => navigate("/admin/users"),
+      });
     }
-    navigate("/admin/users");
   };
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen w-full p-6">
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => navigate("/admin/users")}>
+                Users
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                {isEdit ? "Edit User" : "Create User"}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        <div className="flex-1 flex items-start justify-center">
+          <div className="w-full max-w-3xl bg-white dark:bg-neutral-900 space-y-5 p-6 rounded-md">
+            {Array.from({ length: isEdit ? 4 : 5 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ))}
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen w-full p-6">
@@ -88,7 +136,7 @@ export default function UserForm() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Form container */}
+      {/* Form */}
       <div className="flex-1 flex items-start justify-center">
         <div className="w-full max-w-3xl bg-white dark:bg-neutral-900 ">
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -116,16 +164,32 @@ export default function UserForm() {
             </div>
 
             {/* Password (only when creating) */}
+            {/* Password (only when creating) */}
             {!isEdit && (
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => handleChange("password", e.target.value)}
-                  placeholder="Set a password"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={(e) => handleChange("password", e.target.value)}
+                    placeholder="Set a password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -142,7 +206,6 @@ export default function UserForm() {
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="teacher">Teacher</SelectItem>
                   <SelectItem value="operator">Operator</SelectItem>
                 </SelectContent>
@@ -169,8 +232,18 @@ export default function UserForm() {
             </div>
 
             {/* Submit */}
-            <Button type="submit" className="w-full">
-              {isEdit ? "Update User" : "Create User"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={createUser.isPending || updateUser.isPending}
+            >
+              {createUser.isPending || updateUser.isPending ? (
+                <LoaderCircle className="animate-spin" />
+              ) : isEdit ? (
+                "Update User"
+              ) : (
+                "Create User"
+              )}
             </Button>
           </form>
         </div>
