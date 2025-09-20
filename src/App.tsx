@@ -14,6 +14,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import NotAuthorized from "./pages/NotAuthorized";
 import NotFound from "./pages/NotFound";
+import ResetPasswordForm from "./pages/ResetPasswordForm";
 import SettingsPage from "./pages/Setting";
 import SignUp from "./pages/SignUp";
 import StudentDetails from "./pages/StudentDetails";
@@ -33,6 +34,7 @@ export default function App() {
           <Route element={<SideBarLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/reset-password" element={<ResetPasswordForm />} />
             <Route path="/" element={<Home />} />
 
             {/* Teacher Routes */}

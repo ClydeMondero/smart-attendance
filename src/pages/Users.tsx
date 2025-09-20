@@ -105,7 +105,9 @@ export default function Users() {
                 {user.status === "active" ? "Disable" : "Enable"}
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => resetPassword.mutate({ id: user.id })}
+                onClick={() =>
+                  resetPassword.mutate({ id: user.id, email: user.email })
+                }
               >
                 Reset Password
               </DropdownMenuItem>

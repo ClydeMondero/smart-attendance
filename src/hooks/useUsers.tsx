@@ -97,11 +97,11 @@ export function useToggleStatus() {
 
 export function useResetPassword() {
   return useMutation({
-    mutationFn: async ({ id }: { id: string }) => {
-      const { data } = await api.post(`/users/${id}/reset-password`);
+    mutationFn: async ({ id, email }: { id: string; email: string }) => {
+      const { data } = await api.post(`/users/${id}/reset-password`, { email });
       return data;
     },
-    onSuccess: () => toast.success("Password reset successfully"),
+    onSuccess: () => toast.success("Password reset email sent successfully"),
     onError: () => toast.error("Failed to reset password"),
   });
 }
@@ -114,5 +114,22 @@ export function useUser(id?: string) {
       return data as UserItem;
     },
     enabled: !!id,
+  });
+}
+
+export function useConfirmResetPassword() {
+  return useMutation({
+    mutationFn: async (payload: {
+      token: string;
+      email: string;
+      password: string;
+      password_confirmation: string;
+    }) => {
+      const { data } = await api.post("/reset-password", payload);
+      return data;
+    },
+    onSuccess: () => toast.success("Password reset successful"),
+    onError: (err: any) =>
+      toast.error(err?.response?.data?.message || "Failed to reset password"),
   });
 }
