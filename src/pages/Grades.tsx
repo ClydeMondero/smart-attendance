@@ -2,6 +2,8 @@ import { DataTable } from "@/components/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
@@ -22,44 +24,33 @@ export default function Grades() {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
 
-  // Mock data
-  const data = useMemo<GradeItem[]>(
-    () => [
-      {
-        id: "1",
-        studentName: "Juan Dela Cruz",
-        subjectName: "Mathematics",
-        gradingPeriod: "1st Quarter",
-        score: 89.5,
-        remarks: "Good performance",
-      },
-      {
-        id: "2",
-        studentName: "Maria Santos",
-        subjectName: "Science",
-        gradingPeriod: "1st Quarter",
-        score: 92.0,
-        remarks: "Excellent",
-      },
-      {
-        id: "3",
-        studentName: "Pedro Reyes",
-        subjectName: "English",
-        gradingPeriod: "1st Quarter",
-        score: 74.0,
-        remarks: "Needs improvement",
-      },
-    ],
-    []
-  );
+  // Fetch grades with React Query
+  const { data: grades = [], isLoading } = useQuery({
+    queryKey: ["grades"],
+    queryFn: async () => {
+      const res = await api.get("/grades");
+      return res.data.map((g: any) => ({
+        id: g.id,
+        studentName: g.student?.full_name ?? "N/A",
+        subjectName: g.subject?.name ?? "N/A",
+        gradingPeriod: g.grading_period,
+        score: g.score,
+        remarks: g.remarks ?? "",
+      }));
+    },
+  });
 
   // Search filter
-  const filtered = data.filter(
-    (r) =>
-      q === "" ||
-      r.studentName.toLowerCase().includes(q.toLowerCase()) ||
-      r.subjectName.toLowerCase().includes(q.toLowerCase()) ||
-      r.gradingPeriod.toLowerCase().includes(q.toLowerCase())
+  const filtered = useMemo(
+    () =>
+      grades.filter(
+        (r: GradeItem) =>
+          q === "" ||
+          r.studentName.toLowerCase().includes(q.toLowerCase()) ||
+          r.subjectName.toLowerCase().includes(q.toLowerCase()) ||
+          r.gradingPeriod.toLowerCase().includes(q.toLowerCase())
+      ),
+    [grades, q]
   );
 
   // Table columns
@@ -79,14 +70,8 @@ export default function Grades() {
       header: "Remarks",
       cell: ({ row }) => {
         const remarks = row.getValue("remarks") as string;
-        let color = "bg-gray-200 text-gray-700";
 
-        if (remarks.toLowerCase().includes("excellent"))
-          color = "bg-green-100 text-green-800";
-        if (remarks.toLowerCase().includes("needs improvement"))
-          color = "bg-red-100 text-red-800";
-
-        return <Badge className={color}>{remarks}</Badge>;
+        return <Badge>{remarks || "—"}</Badge>;
       },
     },
   ];
@@ -110,7 +95,7 @@ export default function Grades() {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={filtered} />
+      <DataTable columns={columns} data={filtered} isLoading={isLoading} />
     </div>
   );
 }

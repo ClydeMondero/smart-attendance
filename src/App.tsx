@@ -9,6 +9,7 @@ import ClassAttendanceLog from "./pages/ClassAttendanceLog";
 import Classes from "./pages/Classes";
 import Dashboard from "./pages/Dashboard";
 import EntryLogs from "./pages/EntryLogs";
+import GradeForm from "./pages/GradeForm";
 import Grades from "./pages/Grades";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -19,6 +20,7 @@ import SettingsPage from "./pages/Setting";
 import SignUp from "./pages/SignUp";
 import StudentDetails from "./pages/StudentDetails";
 import Students from "./pages/Students";
+import SubjectForm from "./pages/SubjectForm";
 import Subjects from "./pages/Subjects";
 import UserForm from "./pages/UserForm";
 import Users from "./pages/Users";
@@ -52,9 +54,18 @@ export default function App() {
                 element={<ClassAttendanceLog />}
               />
               <Route path="/admin/subjects" element={<Subjects />} />
+              <Route path="/admin/subjects/new" element={<SubjectForm />} />
+              <Route
+                path="/admin/subjects/:id/edit"
+                element={<SubjectForm />}
+              />
+
               <Route path="/admin/grades" element={<Grades />} />
+              <Route path="/admin/grades/new" element={<GradeForm />} />
+
               <Route path="/admin/students" element={<Students />} />
               <Route path="/admin/students/:id" element={<StudentDetails />} />
+
               <Route path="/admin/users" element={<Users />} />
               <Route path="/admin/users/new" element={<UserForm />} />
               <Route path="/admin/users/:id/edit" element={<UserForm />} />

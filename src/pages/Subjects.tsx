@@ -8,9 +8,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import api from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronDown, Pencil, Trash } from "lucide-react";
 import { useMemo, useState } from "react";
+import { FaCirclePlus } from "react-icons/fa6";
+import { useNavigate } from "react-router";
+import { toast } from "sonner"; // ✅ use sonner
 
 // --- Types ---
 type SubjectItem = {
@@ -20,37 +25,51 @@ type SubjectItem = {
   status: "Active" | "Inactive";
 };
 
-// --- Component ---
 export default function Subjects() {
   const [q, setQ] = useState("");
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  // Mock data (replace with API later)
-  const data = useMemo<SubjectItem[]>(
-    () => [
-      {
-        id: "1",
-        subjectName: "Mathematics",
-        className: "Grade 1 - Class A",
-        status: "Active",
-      },
-      {
-        id: "2",
-        subjectName: "Science",
-        className: "Grade 1 - Class B",
-        status: "Active",
-      },
-      {
-        id: "3",
-        subjectName: "English",
-        className: "Grade 2 - Class A",
-        status: "Inactive",
-      },
-    ],
-    []
-  );
+  // Fetch subjects
+  const { data, isLoading } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: async () => {
+      const res = await api.get("/subjects");
+      return res.data;
+    },
+  });
+
+  // Delete mutation with Sonner toast
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/subjects/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["subjects"] });
+      toast.success("Subject deleted successfully!");
+    },
+    onError: () => {
+      toast.error("Delete failed", {
+        description: "Something went wrong while deleting the subject.",
+      });
+    },
+  });
+
+  // Transform API data into table-friendly shape
+  const subjects: SubjectItem[] = useMemo(() => {
+    if (!data) return [];
+    return data.map((s: any) => ({
+      id: s.id,
+      subjectName: s.name,
+      className: s.school_class
+        ? `${s.school_class.grade_level} - ${s.school_class.section}`
+        : "N/A",
+      status: s.status,
+    }));
+  }, [data]);
 
   // Search filter
-  const filtered = data.filter(
+  const filtered = subjects.filter(
     (r) =>
       q === "" ||
       r.subjectName.toLowerCase().includes(q.toLowerCase()) ||
@@ -76,13 +95,27 @@ export default function Subjects() {
     {
       id: "actions",
       header: "Actions",
-      cell: () => (
+      cell: ({ row }) => (
         <div className="flex gap-2">
-          <Button size="icon" variant="outline">
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => navigate(`/admin/subjects/${row.original.id}/edit`)}
+          >
             <Pencil className="w-4 h-4" />
           </Button>
-          <Button size="icon" variant="outline">
-            <Trash className="w-4 h-4" />
+
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => deleteMutation.mutate(row.original.id)}
+            disabled={deleteMutation.isPending} // ✅ use isPending
+          >
+            {deleteMutation.isPending ? (
+              <span className="text-xs">...</span>
+            ) : (
+              <Trash className="w-4 h-4" />
+            )}
           </Button>
         </div>
       ),
@@ -114,11 +147,19 @@ export default function Subjects() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Button variant="outline">Export to CSV</Button>
+        <Button onClick={() => navigate("/admin/subjects/new")}>
+          <FaCirclePlus className="mr-2" />
+          Add Subject
+        </Button>
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={filtered} />
+      <DataTable
+        columns={columns}
+        data={filtered}
+        isLoading={isLoading}
+        skeletonRows={4}
+      />
     </div>
   );
 }

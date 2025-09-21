@@ -234,7 +234,6 @@ export default function UserForm() {
                     <SelectContent>
                       <SelectItem value="teacher">Teacher</SelectItem>
                       <SelectItem value="operator">Operator</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                   <ErrorMessage
