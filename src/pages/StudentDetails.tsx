@@ -1,6 +1,9 @@
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import * as htmlToImage from "html-to-image";
+import { Award, BookOpen, CalendarDays, Info } from "lucide-react";
 import React, { forwardRef, useMemo, useRef } from "react";
 import Barcode from "react-barcode";
 import { Link, useParams } from "react-router";
@@ -16,6 +19,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useUserStore from "@/store/userStore";
 
 type Student = {
@@ -27,6 +31,7 @@ type Student = {
   parent_contact?: string | null;
   created_at?: string;
   updated_at?: string;
+  class_id: number;
 };
 
 const PX_W = 324; // 3.375in * 96
@@ -52,6 +57,39 @@ export default function StudentDetails() {
     enabled: !!id,
   });
 
+  const { data: attendances } = useQuery({
+    queryKey: ["attendances", id],
+    queryFn: async () => {
+      const { data } = await api.get(`/attendances?student_id=${id}`, {
+        withCredentials: true,
+      });
+
+      console.log(data);
+
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: grades } = useQuery({
+    queryKey: ["grades", id],
+    queryFn: async () => {
+      const { data } = await api.get(`/grades?student_id=${id}`, {
+        withCredentials: true,
+      });
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: subjects } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: async () => {
+      const { data } = await api.get(`/subjects`, { withCredentials: true });
+      return data;
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col gap-4 p-4">
@@ -62,7 +100,6 @@ export default function StudentDetails() {
           <Skeleton className="h-4 w-40" />
         </div>
 
-        {/* Header actions skeleton */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <Skeleton className="h-7 w-56 mb-2" />
@@ -74,11 +111,8 @@ export default function StudentDetails() {
           </div>
         </div>
 
-        {/* Content skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <StudentInfoSkeleton />
-          <IdCardPreviewSkeleton />
-        </div>
+        <Skeleton className="h-10 w-1/3" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
@@ -108,7 +142,7 @@ export default function StudentDetails() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Header actions */}
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{student.full_name}</h1>
@@ -117,61 +151,101 @@ export default function StudentDetails() {
             {student.section ? ` • ${student.section}` : ""}
           </p>
         </div>
-
         <div className="flex items-center gap-2">
           <PrintButton student={student} />
           <DownloadPngButton student={student} target={() => cardRef.current} />
         </div>
       </div>
 
-      {/* Content: info + ID preview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <StudentInfo student={student} />
-        <IdCardPreview ref={cardRef} student={student} />
-      </div>
-    </div>
-  );
-}
+      {/* Tabs */}
+      <Tabs defaultValue="details" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="details">
+            <Info className="w-4 h-4 mr-1" /> Details
+          </TabsTrigger>
+          <TabsTrigger value="attendance">
+            <CalendarDays className="w-4 h-4 mr-1" /> Attendance
+          </TabsTrigger>
+          <TabsTrigger value="grades">
+            <Award className="w-4 h-4 mr-1" /> Grades
+          </TabsTrigger>
+          <TabsTrigger value="subjects">
+            <BookOpen className="w-4 h-4 mr-1" /> Subjects
+          </TabsTrigger>
+        </TabsList>
 
-/* ---------- Skeletons ---------- */
-function StudentInfoSkeleton() {
-  return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow p-4">
-      <Skeleton className="h-5 w-44 mb-3" />
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-64" />
-        <Skeleton className="h-4 w-72" />
-        <Skeleton className="h-4 w-52" />
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-4 w-60" />
-      </div>
-    </div>
-  );
-}
+        <TabsContent value="details">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <StudentInfo student={student} />
+            <IdCardPreview ref={cardRef} student={student} />
+          </div>
+        </TabsContent>
 
-function IdCardPreviewSkeleton() {
-  return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow p-4">
-      <Skeleton className="h-5 w-40 mb-3" />
-      <div className="mx-auto w-[3.375in] h-[2.125in] rounded-lg overflow-hidden bg-white">
-        <Skeleton className="h-8 w-full" />
-        <div className="p-3 flex h-[calc(100%-2rem)] gap-2">
-          <div className="w-1/3 flex items-center justify-center">
-            <Skeleton className="w-20 h-24 rounded" />
+        <TabsContent value="attendance">
+          <div className="grid gap-3">
+            {attendances?.data.map((a: any) => (
+              <Card key={a.id}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    {a.log_date}
+                    <Badge
+                      variant={a.status === "Present" ? "default" : "secondary"}
+                    >
+                      {a.status}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  <div>In: {a.time_in ?? "-"}</div>
+                  <div>Out: {a.time_out ?? "-"}</div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          <div className="w-2/3 flex flex-col">
-            <div className="space-y-2">
-              <Skeleton className="h-3 w-40" />
-              <Skeleton className="h-3 w-32" />
-              <Skeleton className="h-3 w-24" />
-            </div>
-            <div className="mt-auto pt-2">
-              <Skeleton className="h-10 w-full" />
-            </div>
+        </TabsContent>
+
+        <TabsContent value="grades">
+          <div className="grid gap-3">
+            {grades?.map((g: any) => (
+              <Card key={g.id}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    {g.subject?.name}
+                    <Badge variant="outline">{g.grading_period}</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  <div>Score: {g.score}</div>
+                  <div>Remarks: {g.remarks ?? "-"}</div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </div>
-      </div>
-      <Skeleton className="h-3 w-72 mt-2" />
+        </TabsContent>
+
+        <TabsContent value="subjects">
+          <div className="grid gap-3">
+            {subjects
+              ?.filter((s: any) => s.class_id === student.class_id)
+              .map((s: any) => (
+                <Card key={s.id}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      {s.name}
+                      <Badge
+                        variant={
+                          s.status === "Active" ? "default" : "secondary"
+                        }
+                      >
+                        {s.status}
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+              ))}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

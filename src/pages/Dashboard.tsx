@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import api from "@/lib/api";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -39,21 +39,21 @@ import {
 // ---------------------------------------------
 // Helper
 // ---------------------------------------------
-function Info({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-sm font-medium">{value}</div>
-    </div>
-  );
-}
+// function Info({ label, value }: { label: string; value: string }) {
+//   return (
+//     <div>
+//       <div className="text-xs text-muted-foreground">{label}</div>
+//       <div className="text-sm font-medium">{value}</div>
+//     </div>
+//   );
+// }
 
 // ---------------------------------------------
 // Main Component
 // ---------------------------------------------
 export default function Dashboard() {
   const [range, setRange] = useState<"7d" | "30d" | "12m">("7d");
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   // Queries
   const summaryQuery = useQuery({
@@ -77,11 +77,11 @@ export default function Dashboard() {
     queryFn: async () => (await api.get("/dashboard/logs?date=today")).data,
   });
 
-  const excusesQuery = useQuery({
-    queryKey: ["dashboard", "excuses"],
-    queryFn: async () =>
-      (await api.get("/dashboard/excuses?status=pending")).data,
-  });
+  // const excusesQuery = useQuery({
+  //   queryKey: ["dashboard", "excuses"],
+  //   queryFn: async () =>
+  //     (await api.get("/dashboard/excuses?status=pending")).data,
+  // });
 
   // Mutations for excuses
   // const approveExcuse = useMutation({
@@ -150,7 +150,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between mb-4">
-            <Tabs value={range} onValueChange={(v: any) => setRange(v as any)}>
+            <Tabs value={range} onValueChange={(v) => setRange(v)}>
               <TabsList>
                 <TabsTrigger value="7d">7d</TabsTrigger>
                 <TabsTrigger value="30d">30d</TabsTrigger>
