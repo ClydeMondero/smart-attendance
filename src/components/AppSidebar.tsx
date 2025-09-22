@@ -57,12 +57,6 @@ const menus: Record<Role, RoleMenus> = {
   teacher: {
     attendance: [
       {
-        title: "Entry Logs",
-        to: "/teacher/entry",
-        icon: ClipboardList,
-        tooltip: "Check your attendance logs",
-      },
-      {
         title: "My Classes",
         to: "/teacher/classes",
         icon: BookOpen,
@@ -321,17 +315,6 @@ export function AppSidebar() {
                     <SidebarGroupContent>
                       <SidebarMenu>
                         {renderMenu(menus.teacher.people)}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </SidebarGroup>
-                )}
-
-                {menus.teacher.controls && (
-                  <SidebarGroup>
-                    <SidebarGroupLabel>Controls</SidebarGroupLabel>
-                    <SidebarGroupContent>
-                      <SidebarMenu>
-                        {renderMenu(menus.teacher.controls)}
                       </SidebarMenu>
                     </SidebarGroupContent>
                   </SidebarGroup>

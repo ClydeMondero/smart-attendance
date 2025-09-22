@@ -18,9 +18,7 @@ const NotAuthorized = () => {
       </p>
       <Button asChild className="mt-4">
         <Link
-          to={`${
-            role == "teacher" ? "/teacher/dashboard" : "/admin/dashboard"
-          }`}
+          to={`${role == "teacher" ? "/teacher/classes" : "/admin/dashboard"}`}
         >
           Back to Home
         </Link>

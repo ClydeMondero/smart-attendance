@@ -40,9 +40,23 @@ export default function App() {
             <Route path="/" element={<Home />} />
 
             {/* Teacher Routes */}
-            {/* <Route element={<PrivateRoute allowedRoles={["teacher"]} />}>
-              <Route path="/officer/pending" element={<Pending />} />
-            </Route> */}
+            <Route element={<PrivateRoute allowedRoles={["teacher"]} />}>
+              <Route path="/teacher/classes" element={<Classes />} />
+              <Route
+                path="/teacher/classes/:id"
+                element={<ClassAttendanceLog />}
+              />
+              <Route path="/teacher/subjects" element={<Subjects />} />
+
+              <Route path="/teacher/grades" element={<Grades />} />
+              <Route path="/teacher/grades/new" element={<GradeForm />} />
+
+              <Route path="/teacher/students" element={<Students />} />
+              <Route
+                path="/teacher/students/:id"
+                element={<StudentDetails />}
+              />
+            </Route>
 
             {/* Admin Routes */}
             <Route element={<PrivateRoute allowedRoles={["admin"]} />}>

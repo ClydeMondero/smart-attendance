@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/api";
+import useUserStore from "@/store/userStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { LoaderCircle } from "lucide-react";
@@ -51,6 +52,7 @@ export default function GradeForm() {
   const { id } = useParams(); // optional for edit later
   const navigate = useNavigate();
   const isEdit = Boolean(id);
+  const { role } = useUserStore();
 
   // Fetch students
   const { data: studentsResponse = {}, isLoading: loadingStudents } = useQuery({
@@ -73,8 +75,8 @@ export default function GradeForm() {
       return res.data;
     },
     onSuccess: () => {
-      toast.success("Grade created successfully!"); // ✅ success toast
-      navigate("/admin/grades");
+      toast.success("Grade created successfully!");
+      navigate(`/${role}/grades`);
     },
     onError: (err: any) => {
       const message = err?.response?.data?.message || "Failed to create grade.";
@@ -97,7 +99,7 @@ export default function GradeForm() {
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink onClick={() => navigate("/admin/grades")}>
+              <BreadcrumbLink onClick={() => navigate(`/${role}/grades`)}>
                 Grades
               </BreadcrumbLink>
             </BreadcrumbItem>
@@ -128,7 +130,7 @@ export default function GradeForm() {
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate("/admin/grades")}>
+            <BreadcrumbLink onClick={() => navigate(`/${role}/grades`)}>
               Grades
             </BreadcrumbLink>
           </BreadcrumbItem>

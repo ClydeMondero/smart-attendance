@@ -2,13 +2,14 @@ import { DataTable } from "@/components/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import api from "@/lib/api";
+import useUserStore from "@/store/userStore";
 import { scrollToTop } from "@/utils/scroll";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -17,167 +18,173 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 type ClassItem = {
-  id: string;
-  gradeLevel: string;
-  section: string;
-  teacher: string;
-  schoolYear: string;
-  status: "Active" | "Inactive";
+    id: string;
+    gradeLevel: string;
+    section: string;
+    teacher: string;
+    schoolYear: string;
+    status: "Active" | "Inactive";
 };
 
 export default function Classes() {
-  const [q, setQ] = useState("");
-  const [gradeLevel, setGradeLevel] = useState<string | undefined>();
-  const [status, setStatus] = useState<"Active" | "Inactive" | undefined>();
-  const navigate = useNavigate();
+    const [q, setQ] = useState("");
+    const [gradeLevel, setGradeLevel] = useState<string | undefined>();
+    const [status, setStatus] = useState<"Active" | "Inactive" | undefined>();
+    const navigate = useNavigate();
+    const { role, user } = useUserStore();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["classes", q, gradeLevel, status],
-    queryFn: async (): Promise<ClassItem[]> => {
-      const res = await api.get("/classes", {
-        params: {
-          q,
-          grade_level: gradeLevel,
-          status, // backend expects 'active'/'inactive' but our resource normalizes, so OK to send proper case:
-        },
-      });
-      // API Resource already returns camelCase collection under data.data
-      // (Laravel resources on paginator return { data: [...], links, meta })
-      return res.data.data as ClassItem[];
-    },
-  });
-
-  const columns: ColumnDef<ClassItem>[] = useMemo(
-    () => [
-      { accessorKey: "grade_level", header: "Grade Level" },
-      { accessorKey: "section", header: "Section" },
-      { accessorKey: "teacher", header: "Teacher" },
-      { accessorKey: "school_year", header: "School Year" },
-      {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const status = row.getValue("status") as ClassItem["status"];
-          const color =
-            status === "Active"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-200 text-gray-700";
-          return <Badge className={color}>{status}</Badge>;
-        },
-      },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => (
-          <div className="flex gap-2">
-            <Button
-              size="icon"
-              onClick={() => {
-                navigate(`/admin/classes/${row.original.id}`);
-                scrollToTop();
-              }}
-            >
-              <Eye className="w-4 h-4" />
-            </Button>
-            <Button size="icon" variant="outline">
-              <Pencil className="w-4 h-4" />
-            </Button>
-            <Button size="icon" variant="outline">
-              <Trash className="w-4 h-4" />
-            </Button>
-          </div>
-        ),
-      },
-    ],
-    [navigate]
-  );
-
-  return (
-    <div className="min-h-screen flex flex-col gap-4 p-4">
-      <h2 className="text-xl font-semibold">Classes</h2>
-
-      {/* Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex gap-2">
-          <Input
-            placeholder="Search by section or teacher..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            className="max-w-xs"
-          />
-
-          {/* Grade level */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                {gradeLevel ?? "Select Grade Level"}{" "}
-                <ChevronDown className="ml-1 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {[
-                "Grade 1",
-                "Grade 2",
-                "Grade 3",
-                "Grade 4",
-                "Grade 5",
-                "Grade 6",
-                "Grade 7",
-                "Grade 8",
-                "Grade 9",
-                "Grade 10",
-                "Grade 11",
-                "Grade 12",
-              ].map((gl) => (
-                <DropdownMenuItem key={gl} onClick={() => setGradeLevel(gl)}>
-                  {gl}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuItem onClick={() => setGradeLevel(undefined)}>
-                All
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Status */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                {status ?? "Select Status"}{" "}
-                <ChevronDown className="ml-1 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setStatus("Active")}>
-                Active
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatus("Inactive")}>
-                Inactive
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setStatus(undefined)}>
-                All
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        <Button
-          variant="outline"
-          onClick={() => {
-            const params = new URLSearchParams({
-              ...(q ? { q } : {}),
-              ...(gradeLevel ? { grade_level: gradeLevel } : {}),
-              ...(status ? { status } : {}),
+    const { data, isLoading } = useQuery({
+        queryKey: ["classes", q, gradeLevel, status, role, user?.name],
+        queryFn: async (): Promise<ClassItem[]> => {
+            const res = await api.get("/classes", {
+                params: {
+                    q,
+                    grade_level: gradeLevel,
+                    status,
+                    ...(role === "teacher" ? { teacher: user?.name } : {}),
+                },
             });
-            window.location.href = `/classes-export?${params.toString()}`;
-          }}
-        >
-          Export to CSV
-        </Button>
-      </div>
+            return res.data.data as ClassItem[];
+        },
+    });
 
-      {/* Table */}
-      <DataTable columns={columns} data={data ?? []} isLoading={isLoading} />
-    </div>
-  );
+    const columns: ColumnDef<ClassItem>[] = useMemo(
+        () => [
+            { accessorKey: "grade_level", header: "Grade Level" },
+            { accessorKey: "section", header: "Section" },
+            { accessorKey: "teacher", header: "Teacher" },
+            { accessorKey: "school_year", header: "School Year" },
+            {
+                accessorKey: "status",
+                header: "Status",
+                cell: ({ row }) => {
+                    const status = row.getValue("status") as ClassItem["status"];
+                    const color =
+                        status === "Active"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-200 text-gray-700";
+                    return <Badge className={color}>{status}</Badge>;
+                },
+            },
+            {
+                id: "actions",
+                header: "Actions",
+                cell: ({ row }) => (
+                    <div className="flex gap-2">
+                        <Button
+                            size="icon"
+                            onClick={() => {
+                                navigate(`/${role}/classes/${row.original.id}`);
+                                scrollToTop();
+                            }}
+                        >
+                            <Eye className="w-4 h-4" />
+                        </Button>
+                        {role === "admin" && (
+                            <>
+                                <Button size="icon" variant="outline">
+                                    <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button size="icon" variant="outline">
+                                    <Trash className="w-4 h-4" />
+                                </Button>
+                            </>
+                        )
+
+                        }
+                    </div>
+                ),
+            },
+        ],
+        [navigate]
+    );
+
+    return (
+        <div className="min-h-screen flex flex-col gap-4 p-4">
+            <h2 className="text-xl font-semibold">Classes</h2>
+
+            {/* Filters */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex gap-2">
+                    <Input
+                        placeholder="Search by section or teacher..."
+                        value={q}
+                        onChange={(e) => setQ(e.target.value)}
+                        className="max-w-xs"
+                    />
+
+                    {/* Grade level */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline">
+                                {gradeLevel ?? "Select Grade Level"}{" "}
+                                <ChevronDown className="ml-1 h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            {[
+                                "Grade 1",
+                                "Grade 2",
+                                "Grade 3",
+                                "Grade 4",
+                                "Grade 5",
+                                "Grade 6",
+                                "Grade 7",
+                                "Grade 8",
+                                "Grade 9",
+                                "Grade 10",
+                                "Grade 11",
+                                "Grade 12",
+                            ].map((gl) => (
+                                <DropdownMenuItem key={gl} onClick={() => setGradeLevel(gl)}>
+                                    {gl}
+                                </DropdownMenuItem>
+                            ))}
+                            <DropdownMenuItem onClick={() => setGradeLevel(undefined)}>
+                                All
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* Status */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline">
+                                {status ?? "Select Status"}{" "}
+                                <ChevronDown className="ml-1 h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => setStatus("Active")}>
+                                Active
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setStatus("Inactive")}>
+                                Inactive
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setStatus(undefined)}>
+                                All
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+
+                <Button
+                    variant="outline"
+                    onClick={() => {
+                        const params = new URLSearchParams({
+                            ...(q ? { q } : {}),
+                            ...(gradeLevel ? { grade_level: gradeLevel } : {}),
+                            ...(status ? { status } : {}),
+                        });
+                        window.location.href = `/classes-export?${params.toString()}`;
+                    }}
+                >
+                    Export to CSV
+                </Button>
+            </div>
+
+            {/* Table */}
+            <DataTable columns={columns} data={data ?? []} isLoading={isLoading} />
+        </div>
+    );
 }

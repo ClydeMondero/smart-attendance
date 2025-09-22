@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import api from "@/lib/api";
+import useUserStore from "@/store/userStore";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
@@ -19,10 +20,11 @@ type GradeItem = {
   remarks: string;
 };
 
-// --- Component ---
+// Component
 export default function Grades() {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
+  const { role } = useUserStore();
 
   // Fetch grades with React Query
   const { data: grades = [], isLoading } = useQuery({
@@ -88,7 +90,7 @@ export default function Grades() {
           onChange={(e) => setQ(e.target.value)}
           className="max-w-xs"
         />
-        <Button onClick={() => navigate("/admin/grades/new")}>
+        <Button onClick={() => navigate(`/${role}/grades/new`)}>
           <FaCirclePlus className="mr-2" />
           Add Grade
         </Button>
