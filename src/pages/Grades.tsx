@@ -2,10 +2,14 @@ import { DataTable } from "@/components/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Toggle } from "@/components/ui/toggle";
+import { useSyncSettings } from "@/hooks/useSyncSettings";
 import api from "@/lib/api";
 import useUserStore from "@/store/userStore";
+import useSettingStore from "@/store/useSettingStore";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
+import { LockIcon, LockOpenIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
@@ -20,13 +24,14 @@ type GradeItem = {
   remarks: string;
 };
 
-// Component
 export default function Grades() {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
   const { role } = useUserStore();
+  useSyncSettings();
+  const { allowGrades, setAllowGrades } = useSettingStore();
 
-  // Fetch grades with React Query
+  // --- Fetch grades ---
   const { data: grades = [], isLoading } = useQuery({
     queryKey: ["grades"],
     queryFn: async () => {
@@ -42,7 +47,7 @@ export default function Grades() {
     },
   });
 
-  // Search filter
+  // --- Search filter ---
   const filtered = useMemo(
     () =>
       grades.filter(
@@ -55,7 +60,7 @@ export default function Grades() {
     [grades, q]
   );
 
-  // Table columns
+  // --- Table columns ---
   const columns: ColumnDef<GradeItem>[] = [
     { accessorKey: "studentName", header: "Student Name" },
     { accessorKey: "subjectName", header: "Subject" },
@@ -72,7 +77,6 @@ export default function Grades() {
       header: "Remarks",
       cell: ({ row }) => {
         const remarks = row.getValue("remarks") as string;
-
         return <Badge>{remarks || "—"}</Badge>;
       },
     },
@@ -82,7 +86,7 @@ export default function Grades() {
     <div className="min-h-screen flex flex-col gap-4 p-4">
       <h2 className="text-xl font-semibold">Grades</h2>
 
-      {/* Filters */}
+      {/* Filters + Actions */}
       <div className="flex items-center justify-between gap-2">
         <Input
           placeholder="Search by student, subject, or grading period..."
@@ -90,10 +94,31 @@ export default function Grades() {
           onChange={(e) => setQ(e.target.value)}
           className="max-w-xs"
         />
-        <Button onClick={() => navigate(`/${role}/grades/new`)}>
-          <FaCirclePlus className="mr-2" />
-          Add Grade
-        </Button>
+
+        <div className="flex items-center gap-2">
+          {role === "admin" && (
+            <Toggle
+              pressed={allowGrades}
+              onPressedChange={setAllowGrades}
+              aria-label="Toggle Allow Grades"
+              variant="outline"
+            >
+              {allowGrades ? (
+                <LockIcon size={18} />
+              ) : (
+                <LockOpenIcon size={18} />
+              )}
+              {allowGrades ? "Disable Grades" : "Allow Grades"}
+            </Toggle>
+          )}
+
+          {allowGrades && (
+            <Button onClick={() => navigate(`/${role}/grades/new`)}>
+              <FaCirclePlus className="mr-2" />
+              Add Grade
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Data Table */}
