@@ -19,6 +19,7 @@ import ResetPasswordForm from "./pages/ResetPasswordForm";
 import SettingsPage from "./pages/Setting";
 import SignUp from "./pages/SignUp";
 import StudentDetails from "./pages/StudentDetails";
+import StudentForm from "./pages/StudentForm";
 import Students from "./pages/Students";
 import SubjectForm from "./pages/SubjectForm";
 import Subjects from "./pages/Subjects";
@@ -78,6 +79,11 @@ export default function App() {
               <Route path="/admin/grades/new" element={<GradeForm />} />
 
               <Route path="/admin/students" element={<Students />} />
+              <Route path="/admin/students/new" element={<StudentForm />} />
+              <Route
+                path="/admin/students/:id/edit"
+                element={<StudentForm />}
+              />
               <Route path="/admin/students/:id" element={<StudentDetails />} />
 
               <Route path="/admin/users" element={<Users />} />

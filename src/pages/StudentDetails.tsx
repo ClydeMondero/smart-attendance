@@ -26,12 +26,14 @@ type Student = {
   id: number;
   barcode: string;
   full_name: string;
-  grade_level: string;
-  section?: string | null;
   parent_contact?: string | null;
   created_at?: string;
   updated_at?: string;
   class_id: number;
+  school_class?: {
+    grade_level: string;
+    section: string;
+  };
 };
 
 const PX_W = 324; // 3.375in * 96
@@ -63,8 +65,6 @@ export default function StudentDetails() {
       const { data } = await api.get(`/attendances?student_id=${id}`, {
         withCredentials: true,
       });
-
-      console.log(data);
 
       return data;
     },
@@ -147,8 +147,10 @@ export default function StudentDetails() {
         <div>
           <h1 className="text-2xl font-semibold">{student.full_name}</h1>
           <p className="text-muted-foreground">
-            {student.grade_level}
-            {student.section ? ` • ${student.section}` : ""}
+            {student.school_class?.grade_level}
+            {student.school_class?.section
+              ? ` • ${student.school_class.section}`
+              : ""}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -264,10 +266,11 @@ function StudentInfo({ student }: { student: Student }) {
         </div>
         <div>
           <span className="font-medium">Grade Level:</span>{" "}
-          {student.grade_level}
+          {student.school_class?.grade_level}
         </div>
         <div>
-          <span className="font-medium">Section:</span> {student.section || "—"}
+          <span className="font-medium">Section:</span>{" "}
+          {student.school_class?.section || "—"}
         </div>
         <div>
           <span className="font-medium">Parent Contact:</span>{" "}
@@ -310,11 +313,10 @@ const IdCardPreview = forwardRef<HTMLDivElement, { student: Student }>(
                   {student.full_name}
                 </div>
                 <div className="text-gray-600 leading-tight">
-                  {student.grade_level}
-                  {student.section ? ` • ${student.section}` : ""}
-                </div>
-                <div className="text-gray-600 leading-tight">
-                  ID: {student.id}
+                  {student.school_class?.grade_level}
+                  {student.school_class?.section
+                    ? ` • ${student.school_class.section}`
+                    : ""}
                 </div>
               </div>
               <div className="mt-auto pt-1">
@@ -324,7 +326,7 @@ const IdCardPreview = forwardRef<HTMLDivElement, { student: Student }>(
                   height={42}
                   width={1.6}
                   displayValue
-                  margin={6} // <-- quiet zone to prevent right-edge clipping
+                  margin={6}
                   fontSize={12}
                   className="w-full"
                 />
@@ -398,8 +400,10 @@ function PrintButton({ student }: { student: Student }) {
                   {student.full_name}
                 </div>
                 <div className="text-gray-600 leading-tight">
-                  {student.grade_level}
-                  {student.section ? ` • ${student.section}` : ""}
+                  {student.school_class?.grade_level}
+                  {student.school_class?.section
+                    ? ` • ${student.school_class.section}`
+                    : ""}
                 </div>
                 <div className="text-gray-600 leading-tight">
                   ID: {student.id}
