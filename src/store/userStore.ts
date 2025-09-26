@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   role: "teacher" | "admin"; // adjust roles here
+  status: "active" | "disabled";
 }
 
 interface UserState {

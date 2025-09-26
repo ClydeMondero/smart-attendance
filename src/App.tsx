@@ -15,6 +15,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import NotAuthorized from "./pages/NotAuthorized";
 import NotFound from "./pages/NotFound";
+import ProfilePage from "./pages/ProfilePage";
 import ResetPasswordForm from "./pages/ResetPasswordForm";
 import SettingsPage from "./pages/Setting";
 import SignUp from "./pages/SignUp";
@@ -25,6 +26,7 @@ import SubjectForm from "./pages/SubjectForm";
 import Subjects from "./pages/Subjects";
 import UserForm from "./pages/UserForm";
 import Users from "./pages/Users";
+import UserView from "./pages/UserView";
 import useUserStore from "./store/userStore";
 
 export default function App() {
@@ -88,13 +90,14 @@ export default function App() {
 
               <Route path="/admin/users" element={<Users />} />
               <Route path="/admin/users/new" element={<UserForm />} />
+              <Route path="/admin/users/:id" element={<UserView />} />
               <Route path="/admin/users/:id/edit" element={<UserForm />} />
             </Route>
 
             <Route
               element={<PrivateRoute allowedRoles={["admin", "teacher"]} />}
             >
-              <Route path="/profile" element={<SettingsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 
