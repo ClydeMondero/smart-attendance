@@ -15,9 +15,9 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import NotAuthorized from "./pages/NotAuthorized";
 import NotFound from "./pages/NotFound";
-import ProfilePage from "./pages/ProfilePage";
+import Profile from "./pages/Profile";
 import ResetPasswordForm from "./pages/ResetPasswordForm";
-import SettingsPage from "./pages/Setting";
+import Setting from "./pages/Setting";
 import SignUp from "./pages/SignUp";
 import StudentDetails from "./pages/StudentDetails";
 import StudentForm from "./pages/StudentForm";
@@ -92,13 +92,13 @@ export default function App() {
               <Route path="/admin/users/new" element={<UserForm />} />
               <Route path="/admin/users/:id" element={<UserView />} />
               <Route path="/admin/users/:id/edit" element={<UserForm />} />
+              <Route path="/admin/settings" element={<Setting />} />
             </Route>
 
             <Route
               element={<PrivateRoute allowedRoles={["admin", "teacher"]} />}
             >
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/profile" element={<Profile />} />
             </Route>
 
             <Route path="/unauthorized" element={<NotAuthorized />} />

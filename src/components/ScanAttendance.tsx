@@ -25,8 +25,10 @@ type Student = {
   id: number;
   barcode: string;
   full_name: string;
-  grade_level: string;
-  section?: string | null;
+  school_class: {
+    grade_level: string;
+    section: string;
+  };
 };
 
 export default function ScanAttendance({
@@ -63,20 +65,21 @@ export default function ScanAttendance({
     onSuccess: (data) => {
       beep();
       const action = data?.action as string | undefined;
-      const student = data?.student as string | undefined;
-      if (action && student) {
+      const studentName = data?.student?.full_name as string | undefined;
+      if (action && studentName) {
         const verb =
           action === "time_in"
             ? "timed in"
             : action === "time_out"
             ? "timed out"
             : "recorded";
-        toast.success(`${student} ${verb}.`);
+        toast.success(`${studentName} ${verb}.`);
       } else {
         toast.success("Attendance recorded.");
       }
       onSaved?.(data);
     },
+
     onError: (err: any) => {
       const msg =
         err?.response?.data?.message ??
@@ -231,13 +234,13 @@ export default function ScanAttendance({
       return false;
     }
 
-    const sameGL = norm(student.grade_level) === norm(gradeLevel);
-    const sameSec = norm(student.section) === norm(section);
+    const sameGL = norm(student.school_class.grade_level) === norm(gradeLevel);
+    const sameSec = norm(student.school_class.section) === norm(section);
 
     if (!sameGL || !sameSec) {
       toast.error(
-        `Not in this class (scanned: ${student.grade_level} ${
-          student.section ?? ""
+        `Not in this class (scanned: ${student.school_class.grade_level} ${
+          student.school_class.section ?? ""
         }).`
       );
       allowCache.current.set(key, false);

@@ -4,9 +4,25 @@ import { useEffect } from "react";
 
 export function useSyncSettings() {
   const { data } = useSettings();
-  const setAllowGrades = useSettingStore((s) => s.setAllowGrades);
+  const {
+    setAllowGrades,
+    setSchoolInTemplate,
+    setSchoolOutTemplate,
+    setClassAttendanceTemplate,
+  } = useSettingStore();
 
   useEffect(() => {
-    if (data) setAllowGrades(data.allow_grades);
-  }, [data, setAllowGrades]);
+    if (data) {
+      setAllowGrades(!!data.allow_grades);
+      setSchoolInTemplate(data.school_in_template);
+      setSchoolOutTemplate(data.school_out_template);
+      setClassAttendanceTemplate(data.class_in_template);
+    }
+  }, [
+    data,
+    setAllowGrades,
+    setSchoolInTemplate,
+    setSchoolOutTemplate,
+    setClassAttendanceTemplate,
+  ]);
 }

@@ -1,105 +1,134 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload } from "lucide-react";
+import { useTemplateSettings } from "@/hooks/useSettings";
+import { useSyncSettings } from "@/hooks/useSyncSettings";
+import useSettingStore from "@/store/useSettingStore";
+import { LoaderCircle } from "lucide-react";
 
-export default function SettingsPage() {
+export default function Setting() {
+  useSyncSettings();
+  const {
+    schoolInTemplate,
+    setSchoolInTemplate,
+    schoolOutTemplate,
+    setSchoolOutTemplate,
+    classAttendanceTemplate,
+    setClassAttendanceTemplate,
+  } = useSettingStore();
+
+  type template = "class" | "schoolIn" | "schoolOut";
+
+  const { mutate, isPending } = useTemplateSettings();
+
+  const handleUpdate = (templateType: template) => {
+    // Map template type
+    const templateSetting =
+      templateType === "class"
+        ? "class_in_template"
+        : templateType === "schoolIn"
+        ? "school_in_template"
+        : "school_out_template";
+
+    // Map template value
+    const newValue =
+      templateType === "class"
+        ? classAttendanceTemplate
+        : templateType === "schoolIn"
+        ? schoolInTemplate
+        : schoolOutTemplate;
+
+    // Pass template type and and value to mutation
+    mutate({ templateSetting, newValue });
+  };
+
   return (
     <div className="min-h-screen flex flex-col gap-6 p-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+      <h2 className="text-xl font-semibold">Settings</h2>
 
-      <Tabs defaultValue="template" className="w-full">
+      <Tabs defaultValue="class" className="w-full">
         <TabsList>
-          {/* <TabsTrigger value="account">Account Setting</TabsTrigger> */}
-          <TabsTrigger value="template">Message Template</TabsTrigger>
-          <TabsTrigger value="interface">Interface</TabsTrigger>
+          <TabsTrigger value="class" disabled={isPending}>
+            Class Attendance Template
+          </TabsTrigger>
+          <TabsTrigger value="schoolIn" disabled={isPending}>
+            School In Template
+          </TabsTrigger>
+          <TabsTrigger value="schoolOut" disabled={isPending}>
+            School Out Template
+          </TabsTrigger>
         </TabsList>
 
-        {/* --- Account Setting Tab --- */}
-        <TabsContent value="account">
-          <Card>
-            <CardContent className="p-6 space-y-6">
-              {/* Profile Upload */}
-              <div className="flex items-center gap-4">
-                <div className="w-24 h-24 border-2 border-dashed rounded-lg flex items-center justify-center">
-                  <Upload className="w-6 h-6 text-gray-400" />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Upload your photo
-                </p>
-              </div>
-
-              {/* Form Fields */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Full Name</Label>
-                  <Input placeholder="Please enter your full name" />
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <Input placeholder="Please enter your email" />
-                </div>
-                <div>
-                  <Label>Username</Label>
-                  <Input placeholder="Please enter your username" />
-                </div>
-                <div>
-                  <Label>Phone Number</Label>
-                  <Input placeholder="+63 Please enter your phone number" />
-                </div>
-              </div>
-
-              <div>
-                <Label>Bio</Label>
-                <Textarea placeholder="Write your Bio here e.g your hobbies, interests ETC" />
-              </div>
-
-              <div className="flex gap-2">
-                <Button>Update Profile</Button>
-                <Button variant="outline">Reset</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* --- Message Template Tab --- */}
-        <TabsContent value="template">
+        <TabsContent value="class">
           <Card>
             <CardContent className="p-6 space-y-4">
               <p className="text-sm text-muted-foreground">
-                This is content of the message sent to the parents.
+                This is content of the message sent to the parents when their
+                child enters the class.
               </p>
               <Textarea
                 rows={10}
-                defaultValue={`Good day, {{parent_name}}!
-
-We’re reaching out to inform you that your child, {{student_name}}, has successfully entered {{school_name}} today, {{date}}, at exactly {{entry_time}}.
-
-This message is part of our ongoing effort to ensure transparency and your child's safety while on school grounds. If you have any concerns or questions, feel free to reach out to our administrative office.
-
-Thank you for your continued support and trust in {{school_name}}.
-
-Warm regards,
-{{school_name}} Admin Team`}
+                defaultValue={classAttendanceTemplate}
+                onChange={(e) => setClassAttendanceTemplate(e.target.value)}
               />
               <div className="flex gap-2">
-                <Button>Update Template</Button>
-                <Button variant="outline">Reset</Button>
+                <Button onClick={() => handleUpdate("class")}>
+                  {isPending ? (
+                    <LoaderCircle className="animate-spin" />
+                  ) : (
+                    "Update Template"
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* --- Interface Tab --- */}
-        <TabsContent value="interface">
+        <TabsContent value="schoolIn">
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-6 space-y-4">
               <p className="text-sm text-muted-foreground">
-                Interface customization settings go here...
+                This is content of the message sent to the parents when their
+                child enters the school.
               </p>
+              <Textarea
+                rows={10}
+                defaultValue={schoolInTemplate}
+                onChange={(e) => setSchoolInTemplate(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <Button onClick={() => handleUpdate("schoolIn")}>
+                  {isPending ? (
+                    <LoaderCircle className="animate-spin" />
+                  ) : (
+                    "Update Template"
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="schoolOut">
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                This is content of the message sent to the parents when their
+                child exits the school.
+              </p>
+              <Textarea
+                rows={10}
+                defaultValue={schoolOutTemplate}
+                onChange={(e) => setSchoolOutTemplate(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <Button onClick={() => handleUpdate("schoolOut")}>
+                  {isPending ? (
+                    <LoaderCircle className="animate-spin" />
+                  ) : (
+                    "Update Template"
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Toggle } from "@/components/ui/toggle";
+import { useToggleSettings } from "@/hooks/useSettings";
 import { useSyncSettings } from "@/hooks/useSyncSettings";
 import api from "@/lib/api";
 import useUserStore from "@/store/userStore";
@@ -30,6 +31,7 @@ export default function Grades() {
   const { role } = useUserStore();
   useSyncSettings();
   const { allowGrades, setAllowGrades } = useSettingStore();
+  const toggleSettings = useToggleSettings();
 
   // --- Fetch grades ---
   const { data: grades = [], isLoading } = useQuery({
@@ -99,7 +101,16 @@ export default function Grades() {
           {role === "admin" && (
             <Toggle
               pressed={allowGrades}
-              onPressedChange={setAllowGrades}
+              onPressedChange={(newValue) => {
+                setAllowGrades(newValue); // update local store immediately (optimistic)
+
+                toggleSettings.mutate(newValue, {
+                  onError: () => {
+                    // rollback if failed
+                    setAllowGrades(!newValue);
+                  },
+                });
+              }}
               aria-label="Toggle Allow Grades"
               variant="outline"
             >

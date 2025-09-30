@@ -1,9 +1,3 @@
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-} from "@/components/ui/breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,9 +8,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import useUserStore from "@/store/userStore";
-import { Link } from "react-router";
 
-export default function ProfilePage() {
+export default function Profile() {
   const { user } = useUserStore();
 
   if (!user) {
@@ -29,16 +22,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col min-h-screen w-full p-6">
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/profile">Profile</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <h2 className="text-xl font-semibold">Profile</h2>
 
       {/* Form-like layout */}
       <div className="w-full max-w-3xl mx-auto bg-white dark:bg-neutral-900 p-6 rounded-md space-y-5">
