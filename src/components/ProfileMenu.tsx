@@ -15,7 +15,7 @@ import { useNavigate } from "react-router";
 
 export default function ProfileMenu() {
   const navigate = useNavigate();
-  const { logout, role } = useUserStore();
+  const { logout } = useUserStore();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

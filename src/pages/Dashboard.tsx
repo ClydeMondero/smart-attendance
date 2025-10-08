@@ -52,7 +52,7 @@ import {
 // Main Component
 // ---------------------------------------------
 export default function Dashboard() {
-  const [range, setRange] = useState<"7d" | "30d" | "12m">("7d");
+  const [range, setRange] = useState("7d");
   // const queryClient = useQueryClient();
 
   // Queries

@@ -49,7 +49,7 @@ export default function Students() {
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(25);
+  const [perPage] = useState(25);
 
   useEffect(() => {
     const t = setTimeout(() => {

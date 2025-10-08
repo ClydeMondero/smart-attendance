@@ -1,14 +1,6 @@
+import { scrollToElement, scrollToTop } from "@/utils/scroll";
 import React from "react";
-import {
-  FaFacebook,
-  FaInstagram,
-  FaLinkedin,
-  FaPinterest,
-  FaYoutube,
-} from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
 import { Link, useLocation, useNavigate } from "react-router";
-import { scrollToTop, scrollToElement } from "@/utils/scroll";
 
 interface FooterProps {
   logo?: {
@@ -51,15 +43,6 @@ const defaultSections = [
   },
 ];
 
-const defaultSocialLinks = [
-  { icon: <FaFacebook className="size-5" />, href: "#", label: "Facebook" },
-  { icon: <FaInstagram className="size-5" />, href: "#", label: "Instagram" },
-  { icon: <FaXTwitter className="size-5" />, href: "#", label: "X" },
-  { icon: <FaLinkedin className="size-5" />, href: "#", label: "LinkedIn" },
-  { icon: <FaYoutube className="size-5" />, href: "#", label: "YouTube" },
-  { icon: <FaPinterest className="size-5" />, href: "#", label: "Pinterest" },
-];
-
 const defaultLegalLinks = [
   { name: "Terms and Conditions", href: "#" },
   { name: "Privacy Policy", href: "#" },
@@ -74,7 +57,6 @@ const Footer = ({
   },
   sections = defaultSections,
   description = "Transform the way attendance is managed — quick scans, instant records, and automatic updates, all working in the background.",
-  socialLinks = defaultSocialLinks,
   copyright = "2025 Smart Attendance All rights reserved.",
   legalLinks = defaultLegalLinks,
 }: FooterProps) => {

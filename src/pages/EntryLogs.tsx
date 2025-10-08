@@ -25,17 +25,6 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-type EntryLog = {
-  id: string;
-  date: string;
-  name: string;
-  studentId: string;
-  gradeLevel: string;
-  section: string;
-  timeIn: string;
-  timeOut: string;
-};
-
 export default function EntryLogs() {
   const [q, setQ] = useState("");
   const [filters, setFilters] = useState({
