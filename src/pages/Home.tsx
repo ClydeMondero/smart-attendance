@@ -8,10 +8,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import faqs from "@/constants/faqs";
 import steps from "@/constants/steps";
 import useUserStore from "@/store/userStore";
+import { scrollToTop } from "@/utils/scroll";
 import { ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 export default function Home() {
   const { isLoggedIn, role } = useUserStore();
@@ -54,9 +55,13 @@ const Hero = () => {
           management.
         </p>
         <div className="flex items-center gap-4">
-          <button className="py-3 px-6 bg-primary text-primary-foreground rounded-full hover:scale-105  font-semibold text-lg cursor-pointer flex items-center gap-2">
+          <Link
+            to="/login"
+            onClick={scrollToTop}
+            className="py-3 px-6 bg-primary text-primary-foreground rounded-full hover:scale-105  font-semibold text-lg cursor-pointer flex items-center gap-2"
+          >
             Get Started <ArrowRight />
-          </button>
+          </Link>
         </div>
       </div>
       <img

@@ -1,6 +1,8 @@
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import api from "@/lib/api";
 import useUserStore from "@/store/userStore";
 import { scrollToTop } from "@/utils/scroll";
@@ -22,6 +24,7 @@ type StudentApi = {
     grade_level: string;
     section?: string | null;
   } | null;
+  is_active: number;
 };
 
 type Paginator<T> = {
@@ -50,6 +53,7 @@ export default function Students() {
   const [debouncedQ, setDebouncedQ] = useState("");
   const [page, setPage] = useState(1);
   const [perPage] = useState(25);
+  const [showInactive, setShowInactive] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -71,7 +75,12 @@ export default function Students() {
   });
 
   const rows: StudentItem[] = useMemo(() => {
-    const list = data?.data ?? [];
+    let list = data?.data ?? [];
+
+    if (!showInactive) {
+      list = list.filter((s) => s.is_active === 1);
+    }
+
     return list.map((s) => ({
       id: String(s.id),
       fullName: s.full_name,
@@ -83,7 +92,7 @@ export default function Students() {
         : "—",
       parentContact: s.parent_contact ?? "—",
     }));
-  }, [data]);
+  }, [data, showInactive]);
 
   const del = useMutation({
     mutationFn: async (id: string) => {
@@ -197,7 +206,6 @@ export default function Students() {
                 variant="outline"
                 disabled={del.isPending}
                 onClick={async () => {
-                  if (!confirm("Delete this student?")) return;
                   await del.mutateAsync(row.original.id);
                 }}
               >
@@ -224,6 +232,17 @@ export default function Students() {
         />
 
         <div className="flex items-center gap-2">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="show-inactive"
+              checked={showInactive}
+              onCheckedChange={(checked) => setShowInactive(!!checked)}
+            />
+            <Label htmlFor="show-inactive" className="text-sm">
+              Show inactive students
+            </Label>
+          </div>
+
           {role === "admin" && (
             <Button onClick={() => navigate("/admin/students/new")}>
               <FaCirclePlus className="mr-2" />
