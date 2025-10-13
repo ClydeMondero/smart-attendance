@@ -24,6 +24,7 @@ import StudentForm from "./pages/StudentForm";
 import Students from "./pages/Students";
 import SubjectForm from "./pages/SubjectForm";
 import Subjects from "./pages/Subjects";
+import Terms from "./pages/Terms";
 import UserForm from "./pages/UserForm";
 import Users from "./pages/Users";
 import UserView from "./pages/UserView";
@@ -37,9 +38,11 @@ export default function App() {
       <div className="flex-1">
         <Routes>
           <Route element={<SideBarLayout />}>
+            {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/reset-password" element={<ResetPasswordForm />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="/" element={<Home />} />
 
             {/* Teacher Routes */}

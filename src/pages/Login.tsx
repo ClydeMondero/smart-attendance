@@ -154,7 +154,7 @@ export default function Login() {
                   <p className="text-muted-foreground text-xs text-center">
                     By continuing, you agree to our{" "}
                     <Link to="/terms" className="underline hover:text-primary">
-                      Terms & Conditions
+                      Terms & Conditions and Privacy Policy
                     </Link>
                     .
                   </p>

@@ -160,7 +160,7 @@ const menus: Record<Role, RoleMenus> = {
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isLoggedIn, role, logout } = useUserStore();
+  const { user, isLoggedIn, role, logout } = useUserStore();
   const { setOpen } = useSidebar();
 
   useEffect(() => {
@@ -337,7 +337,7 @@ export function AppSidebar() {
         >
           <UserCircle className="w-8 h-8" />
           <div className="flex flex-col">
-            <span className="font-medium">Sample User</span>
+            <span className="font-medium">{user?.name}</span>
             <span className="text-xs text-muted-foreground">
               {role === "teacher" ? "Teacher" : "Admin"}
             </span>

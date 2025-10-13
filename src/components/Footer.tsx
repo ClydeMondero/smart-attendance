@@ -44,8 +44,8 @@ const defaultSections = [
 ];
 
 const defaultLegalLinks = [
-  { name: "Terms and Conditions", href: "#" },
-  { name: "Privacy Policy", href: "#" },
+  { name: "Terms and Conditions", href: "/terms" },
+  { name: "Privacy Policy", href: "/terms" },
 ];
 
 const Footer = ({
