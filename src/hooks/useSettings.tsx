@@ -1,5 +1,6 @@
 import api from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function useSettings() {
   return useQuery({
@@ -30,6 +31,7 @@ const Templates = {
   schoolInTemplate: "school_in_template",
   schoolOutTemplate: "school_out_template",
   classAttendanceTemplate: "class_in_template",
+  classAbsenceTemplate: "class_absent_template",
 } as const;
 
 export type Templates = (typeof Templates)[keyof typeof Templates];
@@ -50,6 +52,7 @@ export function useTemplateSettings(id: number = 1) {
       return res.data;
     },
     onSuccess: () => {
+      toast.success("Template updated successfully");
       queryClient.invalidateQueries({ queryKey: ["settings"] });
     },
   });

@@ -16,9 +16,11 @@ export default function Setting() {
     setSchoolOutTemplate,
     classAttendanceTemplate,
     setClassAttendanceTemplate,
+    classAbsenceTemplate,
+    setClassAbsenceTemplate,
   } = useSettingStore();
 
-  type template = "class" | "schoolIn" | "schoolOut";
+  type template = "class" | "classAbsence" | "schoolIn" | "schoolOut";
 
   const { mutate, isPending } = useTemplateSettings();
 
@@ -27,6 +29,8 @@ export default function Setting() {
     const templateSetting =
       templateType === "class"
         ? "class_in_template"
+        : templateType === "classAbsence"
+        ? "class_absent_template"
         : templateType === "schoolIn"
         ? "school_in_template"
         : "school_out_template";
@@ -35,6 +39,8 @@ export default function Setting() {
     const newValue =
       templateType === "class"
         ? classAttendanceTemplate
+        : templateType === "classAbsence"
+        ? classAbsenceTemplate
         : templateType === "schoolIn"
         ? schoolInTemplate
         : schoolOutTemplate;
@@ -51,6 +57,9 @@ export default function Setting() {
         <TabsList>
           <TabsTrigger value="class" disabled={isPending}>
             Class Attendance Template
+          </TabsTrigger>
+          <TabsTrigger value="classAbsence" disabled={isPending}>
+            Class Absence Template
           </TabsTrigger>
           <TabsTrigger value="schoolIn" disabled={isPending}>
             School In Template
@@ -74,6 +83,30 @@ export default function Setting() {
               />
               <div className="flex gap-2">
                 <Button onClick={() => handleUpdate("class")}>
+                  {isPending ? (
+                    <LoaderCircle className="animate-spin" />
+                  ) : (
+                    "Update Template"
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="classAbsence">
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                This is content of the message sent to the parents when their
+                child didn't attend their class.
+              </p>
+              <Textarea
+                rows={10}
+                defaultValue={classAbsenceTemplate}
+                onChange={(e) => setClassAbsenceTemplate(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <Button onClick={() => handleUpdate("classAbsence")}>
                   {isPending ? (
                     <LoaderCircle className="animate-spin" />
                   ) : (
