@@ -15,11 +15,13 @@ import {
   useToggleStatus,
   useUsers,
 } from "@/hooks/useUsers";
+import { convertToCSV, downloadCSV } from "@/utils/csv";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 export default function Users() {
   const [q, setQ] = useState("");
@@ -136,10 +138,23 @@ export default function Users() {
           onChange={(e) => setQ(e.target.value)}
           className="max-w-xs"
         />
-        <Button onClick={() => navigate("/admin/users/new")}>
-          <FaCirclePlus className="mr-2" />
-          Add User
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const csv = convertToCSV(data ?? [], columns);
+              if (!csv) return toast.error("No data to export");
+              downloadCSV(csv, "users.csv");
+            }}
+          >
+            Export to CSV
+          </Button>
+
+          <Button onClick={() => navigate("/admin/users/new")}>
+            <FaCirclePlus className="mr-2" />
+            Add User
+          </Button>
+        </div>
       </div>
 
       {/* Data Table */}

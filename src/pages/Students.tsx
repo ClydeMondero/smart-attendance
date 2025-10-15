@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/lib/api";
 import useUserStore from "@/store/userStore";
+import { convertToCSV, downloadCSV } from "@/utils/csv";
 import { scrollToTop } from "@/utils/scroll";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -120,6 +121,7 @@ export default function Students() {
           {row.original.barcode || "N/A"}
         </div>
       ),
+      meta: { csvHeader: "Barcode" },
     },
     {
       accessorKey: "fullName",
@@ -138,6 +140,7 @@ export default function Students() {
           </span>
         </button>
       ),
+      meta: { csvHeader: "Full Name" },
     },
     {
       accessorKey: "className",
@@ -156,6 +159,7 @@ export default function Students() {
           </span>
         </button>
       ),
+      meta: { csvHeader: "Class" },
     },
     {
       accessorKey: "parentContact",
@@ -174,6 +178,7 @@ export default function Students() {
           </span>
         </button>
       ),
+      meta: { csvHeader: "Parent Contact" },
     },
     {
       id: "actions",
@@ -215,6 +220,7 @@ export default function Students() {
           )}
         </div>
       ),
+      meta: { csvHeader: "" }, // Actions column excluded from CSV
     },
   ];
 
@@ -242,6 +248,25 @@ export default function Students() {
               Show inactive students
             </Label>
           </div>
+
+          <Button
+            variant="outline"
+            onClick={() => {
+              const exportColumns = columns.map((col: any) => ({
+                ...col,
+                header:
+                  typeof col.header === "function"
+                    ? col.meta?.csvHeader || ""
+                    : col.header,
+              }));
+
+              const csv = convertToCSV(rows, exportColumns);
+              if (!csv) return toast.error("No data to export");
+              downloadCSV(csv, "students.csv");
+            }}
+          >
+            Export to CSV
+          </Button>
 
           {role === "admin" && (
             <Button onClick={() => navigate("/admin/students/new")}>

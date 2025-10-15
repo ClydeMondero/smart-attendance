@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/popover";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { convertToCSV, downloadCSV } from "@/utils/csv";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { Calendar as CalendarIcon, ChevronDown, Trash } from "lucide-react";
@@ -183,7 +184,16 @@ export default function EntryLogs() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Button variant="outline">Export to CSV</Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            const csv = convertToCSV(data ?? [], columns);
+            if (!csv) return toast.error("No data to export");
+            downloadCSV(csv, "entry_logs.csv");
+          }}
+        >
+          Export to CSV
+        </Button>
       </div>
 
       {/* Data Table */}

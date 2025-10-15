@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import api from "@/lib/api";
 import useUserStore from "@/store/userStore";
+import { convertToCSV, downloadCSV } from "@/utils/csv";
 import { scrollToTop } from "@/utils/scroll";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -17,6 +18,7 @@ import { ChevronDown, Eye, Pencil } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 type ClassItem = {
   id: string;
@@ -169,16 +171,13 @@ export default function Classes() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             onClick={() => {
-              const params = new URLSearchParams({
-                ...(q ? { q } : {}),
-                ...(gradeLevel ? { grade_level: gradeLevel } : {}),
-                ...(status ? { status } : {}),
-              });
-              window.location.href = `/classes-export?${params.toString()}`;
+              const csv = convertToCSV(data ?? [], columns);
+              if (!csv) return toast.error("No data to export");
+              downloadCSV(csv, "classes.csv");
             }}
           >
             Export to CSV

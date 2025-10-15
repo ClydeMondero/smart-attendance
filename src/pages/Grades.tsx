@@ -8,12 +8,14 @@ import { useSyncSettings } from "@/hooks/useSyncSettings";
 import api from "@/lib/api";
 import useUserStore from "@/store/userStore";
 import useSettingStore from "@/store/useSettingStore";
+import { convertToCSV, downloadCSV } from "@/utils/csv";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { LockIcon, LockOpenIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 // --- Types ---
 type GradeItem = {
@@ -69,7 +71,7 @@ export default function Grades() {
     { accessorKey: "gradingPeriod", header: "Grading Period" },
     {
       accessorKey: "score",
-      header: "Score",
+      header: "Grades",
       cell: ({ row }) => (
         <span className="font-medium">{row.getValue("score")}</span>
       ),
@@ -98,6 +100,17 @@ export default function Grades() {
         />
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const csv = convertToCSV(grades ?? [], columns);
+              if (!csv) return toast.error("No data to export");
+              downloadCSV(csv, "grades.csv");
+            }}
+          >
+            Export to CSV
+          </Button>
+
           {role === "admin" && (
             <Toggle
               pressed={allowGrades}
