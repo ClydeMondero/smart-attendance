@@ -91,12 +91,6 @@ export function DataTable<TData, TValue>({
 
   React.useEffect(() => {
     if (externalPagination === undefined) return;
-
-    console.log(
-      "pagination props",
-      externalPagination.page,
-      externalPagination.lastPage
-    );
   }, [externalPagination]);
 
   return (

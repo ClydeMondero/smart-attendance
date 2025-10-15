@@ -2,14 +2,6 @@ import KpiCard from "@/components/KpiCard";
 import SectionTitle from "@/components/SectionTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -72,10 +64,10 @@ export default function Dashboard() {
     queryFn: async () => (await api.get("/dashboard/classes?date=today")).data,
   });
 
-  const logsQuery = useQuery({
-    queryKey: ["dashboard", "logs"],
-    queryFn: async () => (await api.get("/dashboard/logs?date=today")).data,
-  });
+  // const logsQuery = useQuery({
+  //   queryKey: ["dashboard", "logs"],
+  //   queryFn: async () => (await api.get("/dashboard/logs?date=today")).data,
+  // });
 
   // const excusesQuery = useQuery({
   //   queryKey: ["dashboard", "excuses"],
@@ -275,8 +267,7 @@ export default function Dashboard() {
       </Card>
 
       {/* Two-Panel: Logs + Excuses */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        {/* Logs */}
+      {/* } <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <SectionTitle
@@ -320,8 +311,22 @@ export default function Dashboard() {
                           <TableCell>{log.barcode}</TableCell>
                           <TableCell>{log.class}</TableCell>
                           <TableCell>{log.status}</TableCell>
-                          <TableCell>{log.timeIn}</TableCell>
-                          <TableCell>{log.timeOut}</TableCell>
+                          <TableCell>
+                            {log.timeIn
+                              ? format(
+                                  parseISO(log.timeIn),
+                                  "MMM dd, yyyy h:mm a"
+                                )
+                              : "-"}
+                          </TableCell>
+                          <TableCell>
+                            {log.timeOut
+                              ? format(
+                                  parseISO(log.timeOut),
+                                  "MMM dd, yyyy h:mm a"
+                                )
+                              : "-"}
+                          </TableCell>
                           <TableCell>{log.date}</TableCell>
                         </TableRow>
                       ))
@@ -343,8 +348,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Excuses */}
-        {/* <Card>
+        <Card>
           <CardHeader className="pb-2">
             <SectionTitle
               icon={Clock}
@@ -415,8 +419,8 @@ export default function Dashboard() {
               )}
             </div>
           </CardContent>
-        </Card> */}
-      </div>
+        </Card>
+      </div> */}
     </div>
   );
 }

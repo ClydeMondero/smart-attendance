@@ -7,6 +7,7 @@ import { Toaster } from "./components/ui/sonner";
 import SideBarLayout from "./layouts/SidebarLayou";
 import ClassAttendanceLog from "./pages/ClassAttendanceLog";
 import Classes from "./pages/Classes";
+import ClassesForm from "./pages/ClassForm";
 import Dashboard from "./pages/Dashboard";
 import EntryLogs from "./pages/EntryLogs";
 import GradeForm from "./pages/GradeForm";
@@ -73,6 +74,9 @@ export default function App() {
                 path="/admin/classes/:id"
                 element={<ClassAttendanceLog />}
               />
+              <Route path="/admin/classes/new" element={<ClassesForm />} />
+              <Route path="/admin/classes/:id/edit" element={<ClassesForm />} />
+
               <Route path="/admin/subjects" element={<Subjects />} />
               <Route path="/admin/subjects/new" element={<SubjectForm />} />
               <Route

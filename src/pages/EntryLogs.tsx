@@ -15,15 +15,11 @@ import {
 } from "@/components/ui/popover";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
-import {
-  Calendar as CalendarIcon,
-  ChevronDown,
-  Pencil,
-  Trash,
-} from "lucide-react";
+import { Calendar as CalendarIcon, ChevronDown, Trash } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export default function EntryLogs() {
   const [q, setQ] = useState("");
@@ -31,9 +27,10 @@ export default function EntryLogs() {
     date: "",
     classId: "",
   });
+  const qc = useQueryClient();
 
   // Fetch classes and sections
-  const { data: classes } = useQuery({
+  const { data: classes = [] } = useQuery({
     queryKey: ["classes"],
     queryFn: async () => {
       const res = await api.get("/classes?status=active");
@@ -68,6 +65,25 @@ export default function EntryLogs() {
     },
   });
 
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (payload: { id: string }) => {
+      return api.delete(`/attendances/${payload.id}`);
+    },
+    onSuccess: () => {
+      toast.success(`Entry log successfully deleted`);
+      qc.invalidateQueries({
+        queryKey: ["attendance", "entry", filters, q],
+      });
+    },
+    onError: (err: any) => {
+      console.error(err);
+      toast.error("Failed to update time in");
+    },
+  });
+
+  const handleDelete = (id: string) => deleteMutation.mutate({ id });
+
   // Table columns
   const columns = useMemo(
     () => [
@@ -81,12 +97,13 @@ export default function EntryLogs() {
       {
         id: "actions",
         header: "Actions",
-        cell: () => (
+        cell: ({ row }: { row: any }) => (
           <div className="flex gap-2">
-            <Button size="icon" variant="outline">
-              <Pencil className="w-4 h-4" />
-            </Button>
-            <Button size="icon" variant="outline">
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={() => handleDelete(row.original.id)}
+            >
               <Trash className="w-4 h-4" />
             </Button>
           </div>
