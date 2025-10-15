@@ -14,7 +14,7 @@ import { convertToCSV, downloadCSV } from "@/utils/csv";
 import { scrollToTop } from "@/utils/scroll";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ChevronDown, Eye, Pencil } from "lucide-react";
+import { ChevronDown, Download, Eye, Pencil } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
@@ -180,6 +180,7 @@ export default function Classes() {
               downloadCSV(csv, "classes.csv");
             }}
           >
+            <Download className="mr-2 h-4 w-4" />
             Export to CSV
           </Button>
 

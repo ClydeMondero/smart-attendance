@@ -3,7 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import * as htmlToImage from "html-to-image";
-import { Award, BookOpen, CalendarDays, Info } from "lucide-react";
+import jsPDF from "jspdf";
+import {
+  Award,
+  BookOpen,
+  CalendarDays,
+  Download,
+  Info,
+  Printer,
+} from "lucide-react";
 import React, { forwardRef, useMemo, useRef } from "react";
 import Barcode from "react-barcode";
 import { Link, useParams } from "react-router";
@@ -155,7 +163,7 @@ export default function StudentDetails() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <PrintButton student={student} />
+          <PrintButton student={student} target={() => cardRef.current} />
           <DownloadPngButton student={student} target={() => cardRef.current} />
         </div>
       </div>
@@ -363,88 +371,54 @@ const IdCardPreview = forwardRef<HTMLDivElement, { student: Student }>(
 IdCardPreview.displayName = "IdCardPreview";
 
 /* ---------- Actions ---------- */
-function PrintButton({ student }: { student: Student }) {
-  const handlePrint = async () => {
-    const el = document.querySelector(
-      "[data-id-card-root]"
-    ) as HTMLElement | null;
+
+function PrintButton({
+  student,
+  target,
+}: {
+  student: Student;
+  target: () => HTMLElement | null;
+}) {
+  const handleDownloadPdf = async () => {
+    const el = target();
     if (!el) return toast.error("ID card not found.");
 
-    const win = window.open("", "printWindow", "width=480,height=320");
-    if (!win) return toast.error("Popup blocked.");
+    try {
+      // Capture as PNG (same as your Download PNG)
+      const dataUrl = await htmlToImage.toPng(el, {
+        cacheBust: true,
+        pixelRatio: 3,
+        backgroundColor: "#ffffff",
+        width: PX_W,
+        height: PX_H,
+        style: {
+          width: `${PX_W}px`,
+          height: `${PX_H}px`,
+          transform: "none",
+          margin: "0",
+          padding: "0",
+        },
+      });
 
-    const styles = `
-      <style>
-      @page { size: auto; margin: 0; }
-      html, body { padding: 0; margin: 0; background: #fff; }
-      .sheet { display: flex; align-items: center; justify-content: center; width: 100vw; height: 100vh; }
-      </style>
-    `;
+      // Convert to PDF
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "in",
+        format: [3.375, 2.125], // exact ID card size in inches
+      });
 
-    win.document.write(
-      `<!doctype html><html><head><meta charset="utf-8">${styles}</head><body>
-        <div class="sheet">${el.outerHTML}</div>
-      </body></html>`
-    );
-    win.document.close();
-
-    setTimeout(() => {
-      win.focus();
-      win.print();
-    }, 300);
+      pdf.addImage(dataUrl, "PNG", 0, 0, 3.375, 2.125);
+      pdf.save(`${student.full_name}-id.pdf`);
+    } catch (e: any) {
+      toast.error(`Failed to export PDF: ${e.message}`);
+    }
   };
 
   return (
-    <>
-      {/* Hidden copy for printing */}
-      <div className="hidden" data-id-card-root>
-        <div
-          style={{ width: "3.375in", height: "2.125in" }}
-          className="relative overflow-hidden rounded-lg bg-white text-black"
-        >
-          <div className="h-8 w-full bg-blue-600 text-white flex items-center px-3 text-sm font-medium">
-            Smart Attendance
-          </div>
-          <div className="p-3 flex h-[calc(100%-2rem)]">
-            <div className="w-1/3 pr-2 flex items-center justify-center">
-              <div className="w-20 h-24 rounded bg-gray-200 flex items-center justify-center text-[10px] text-gray-600">
-                PHOTO
-              </div>
-            </div>
-            <div className="w-2/3 flex flex-col">
-              <div className="text-xs">
-                <div className="font-semibold leading-tight">
-                  {student.full_name}
-                </div>
-                <div className="text-gray-600 leading-tight">
-                  {student.school_class?.grade_level}
-                  {student.school_class?.section
-                    ? ` • ${student.school_class.section}`
-                    : ""}
-                </div>
-                <div className="text-gray-600 leading-tight">
-                  ID: {student.id}
-                </div>
-              </div>
-              <div className="mt-auto pt-1">
-                <Barcode
-                  value={student.barcode}
-                  format="CODE128"
-                  height={42}
-                  width={1.6}
-                  displayValue
-                  margin={6}
-                  fontSize={12}
-                  className="w-full"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <Button onClick={handlePrint}>Print ID</Button>
-    </>
+    <Button variant="outline" onClick={handleDownloadPdf}>
+      <Printer className="mr-2" size={14} />
+      Print PDF
+    </Button>
   );
 }
 
@@ -487,6 +461,7 @@ function DownloadPngButton({
 
   return (
     <Button variant="outline" onClick={handleDownload}>
+      <Download className="mr-2" size={14} />
       Download PNG
     </Button>
   );

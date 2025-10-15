@@ -18,7 +18,12 @@ import { cn } from "@/lib/utils";
 import { convertToCSV, downloadCSV } from "@/utils/csv";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
-import { Calendar as CalendarIcon, ChevronDown, Trash } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  ChevronDown,
+  Download,
+  Trash,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -192,6 +197,7 @@ export default function EntryLogs() {
             downloadCSV(csv, "entry_logs.csv");
           }}
         >
+          <Download className="mr-2 h-4 w-4" />
           Export to CSV
         </Button>
       </div>

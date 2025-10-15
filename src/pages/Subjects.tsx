@@ -13,7 +13,7 @@ import useUserStore from "@/store/userStore";
 import { convertToCSV, downloadCSV } from "@/utils/csv";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ChevronDown, Pencil, Trash } from "lucide-react";
+import { ChevronDown, Download, Pencil, Trash } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
@@ -168,6 +168,7 @@ export default function Subjects() {
               downloadCSV(csv, "subjects.csv");
             }}
           >
+            <Download className="mr-2 h-4 w-4" />
             Export to CSV
           </Button>
 

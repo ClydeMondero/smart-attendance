@@ -11,7 +11,7 @@ import useSettingStore from "@/store/useSettingStore";
 import { convertToCSV, downloadCSV } from "@/utils/csv";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { LockIcon, LockOpenIcon } from "lucide-react";
+import { Download, LockIcon, LockOpenIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
@@ -108,6 +108,7 @@ export default function Grades() {
               downloadCSV(csv, "grades.csv");
             }}
           >
+            <Download className="mr-2 h-4 w-4" />
             Export to CSV
           </Button>
 

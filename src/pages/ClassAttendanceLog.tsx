@@ -31,7 +31,11 @@ import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format, parse, parseISO } from "date-fns";
-import { Calendar as CalendarIcon, ClipboardList } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  CheckCircle,
+  ClipboardList,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
@@ -392,6 +396,7 @@ export default function ClassAttendanceLog() {
                 disabled={!classId || stopMutation.isPending}
                 variant="outline"
               >
+                <CheckCircle className="w-4 h-4 mr-2" />
                 Finish Attendance
               </Button>
             </div>
