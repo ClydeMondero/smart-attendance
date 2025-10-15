@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useUserStore from "@/store/userStore";
+import { format, parse, parseISO } from "date-fns";
 
 type Student = {
   id: number;
@@ -189,7 +190,7 @@ export default function StudentDetails() {
               <Card key={a.id}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
-                    {a.log_date}
+                    {format(parseISO(a.log_date), "eeee - MMMM dd, yyyy")}
                     <Badge
                       variant={a.status === "Present" ? "default" : "secondary"}
                     >
@@ -198,8 +199,24 @@ export default function StudentDetails() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
-                  <div>In: {a.time_in ?? "-"}</div>
-                  <div>Out: {a.time_out ?? "-"}</div>
+                  <div>
+                    In:{" "}
+                    {a.time_in
+                      ? format(
+                          parse(a.time_in, "HH:mm:ss", new Date()),
+                          "h:mm a"
+                        )
+                      : "-"}
+                  </div>
+                  <div>
+                    Out:{" "}
+                    {a.time_out
+                      ? format(
+                          parse(a.time_out, "HH:mm:ss", new Date()),
+                          "h:mm a"
+                        )
+                      : "-"}
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -217,7 +234,7 @@ export default function StudentDetails() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
-                  <div>Score: {g.score}</div>
+                  <div>Grade: {g.score}</div>
                   <div>Remarks: {g.remarks ?? "-"}</div>
                 </CardContent>
               </Card>
