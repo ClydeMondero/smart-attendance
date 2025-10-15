@@ -103,11 +103,13 @@ export default function ClassAttendanceLog() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const selectedDateStr = ymd(selectedDate);
 
-  const [expectedTime, setExpectedTime] = useState<string>("20:00");
+  const [expectedTime, setExpectedTime] = useState<string>("07:00");
 
   const qc = useQueryClient();
 
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const [isFinished, setIsFinished] = useState(false);
 
   const { data: cls, isLoading: classLoading } = useQuery({
     queryKey: ["class", classId],
@@ -143,6 +145,24 @@ export default function ClassAttendanceLog() {
       });
     },
     onError: () => toast.error("Failed to start attendance"),
+  });
+
+  const stopMutation = useMutation({
+    mutationFn: async () =>
+      api.post("/attendances", {
+        action: "stop",
+        class_id: Number(classId),
+        date: selectedDateStr,
+      }),
+    onSuccess: (res) => {
+      toast.success(
+        `Stopped. SMS sent to ${res.data.sent_count} absent parents.`
+      );
+      qc.invalidateQueries({
+        queryKey: ["attendance", classId, selectedDateStr],
+      });
+    },
+    onError: () => toast.error("Failed to stop attendance"),
   });
 
   const updateTimeInMutation = useMutation({
@@ -346,22 +366,36 @@ export default function ClassAttendanceLog() {
           </Popover>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <TimePicker value={expectedTime} onChange={setExpectedTime} />
-          </div>
+        {selectedDate?.toDateString() === new Date().toDateString() &&
+          !isFinished && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <TimePicker value={expectedTime} onChange={setExpectedTime} />
+              </div>
 
-          <Button
-            onClick={() => {
-              setScanOpen(true);
-              startMutation.mutate();
-            }}
-            disabled={!classId || startMutation.isPending}
-          >
-            <ClipboardList className="w-4 h-4 mr-2" />
-            Start Attendance
-          </Button>
-        </div>
+              <Button
+                onClick={() => {
+                  setScanOpen(true);
+                  startMutation.mutate();
+                }}
+                disabled={!classId || startMutation.isPending}
+              >
+                <ClipboardList className="w-4 h-4 mr-2" />
+                Record Attendance
+              </Button>
+
+              <Button
+                onClick={() => {
+                  stopMutation.mutate();
+                  setIsFinished(true);
+                }}
+                disabled={!classId || stopMutation.isPending}
+                variant="outline"
+              >
+                Finish Attendance
+              </Button>
+            </div>
+          )}
       </div>
 
       <DataTable columns={columns} data={data ?? []} isLoading={rowsLoading} />
