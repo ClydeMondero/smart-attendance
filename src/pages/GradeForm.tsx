@@ -41,10 +41,10 @@ const GradeSchema = Yup.object().shape({
   subject_id: Yup.string().required("Subject is required"),
   grading_period: Yup.string().required("Grading period is required"),
   score: Yup.number()
-    .typeError("Score must be a number")
-    .min(0, "Score must be at least 0")
-    .max(100, "Score cannot exceed 100")
-    .required("Score is required"),
+    .typeError("Grade must be a number")
+    .min(0, "Grade must be at least 0")
+    .max(100, "Grade cannot exceed 100")
+    .required("Grade is required"),
   remarks: Yup.string(),
 });
 
@@ -223,7 +223,7 @@ export default function GradeForm() {
 
                 {/* Score */}
                 <div className="space-y-2">
-                  <Label>Score</Label>
+                  <Label>Grade</Label>
                   <Field
                     as={Input}
                     type="number"
