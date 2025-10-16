@@ -5,6 +5,7 @@ import Footer from "./components/Footer";
 import PrivateRoute from "./components/PrivateRoute";
 import { Toaster } from "./components/ui/sonner";
 import SideBarLayout from "./layouts/SidebarLayout";
+import Announcement from "./pages/Announcement";
 import ClassAttendanceLog from "./pages/ClassAttendanceLog";
 import Classes from "./pages/Classes";
 import ClassesForm from "./pages/ClassForm";
@@ -109,6 +110,8 @@ export default function App() {
               <Route path="/admin/users/:id" element={<UserView />} />
               <Route path="/admin/users/:id/edit" element={<UserForm />} />
               <Route path="/admin/settings" element={<Setting />} />
+
+              <Route path="/admin/announcement" element={<Announcement />} />
             </Route>
 
             <Route

@@ -20,6 +20,7 @@ import {
   GraduationCap,
   LayoutDashboard,
   LogOut,
+  Megaphone,
   Settings,
   UserCircle,
   UserCog,
@@ -133,6 +134,12 @@ const menus: Record<Role, RoleMenus> = {
       },
     ],
     people: [
+      {
+        title: "Announcement",
+        to: "/admin/announcement",
+        icon: Megaphone,
+        tooltip: "Send announcements",
+      },
       {
         title: "Students",
         to: "/admin/students",
