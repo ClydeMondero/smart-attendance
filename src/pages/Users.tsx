@@ -16,8 +16,9 @@ import {
   useUsers,
 } from "@/hooks/useUsers";
 import { convertToCSV, downloadCSV } from "@/utils/csv";
+import { exportToPDF } from "@/utils/pdf";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ChevronDown, Download } from "lucide-react";
+import { ChevronDown, Download, FileText } from "lucide-react";
 import { useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
@@ -149,6 +150,31 @@ export default function Users() {
           >
             <Download className="mr-2 h-4 w-4" />
             Export to CSV
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const exportColumns = columns.map((col: any) => ({
+                header:
+                  typeof col.header === "string"
+                    ? col.header
+                    : col.meta?.csvHeader || "",
+                accessorKey: col.accessorKey,
+                id: col.id,
+              }));
+
+              exportToPDF({
+                rows: data ?? [],
+                columns: exportColumns,
+                filename: "users.pdf",
+                title: "Users Report",
+                websiteName: "Smart Attendance",
+                logoUrl: "/logo.png",
+              });
+            }}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Export to PDF
           </Button>
 
           <Button onClick={() => navigate("/admin/users/new")}>

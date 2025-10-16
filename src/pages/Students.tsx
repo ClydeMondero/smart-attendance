@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import api from "@/lib/api";
 import useUserStore from "@/store/userStore";
 import { convertToCSV, downloadCSV } from "@/utils/csv";
+import { exportToPDF } from "@/utils/pdf";
 import { scrollToTop } from "@/utils/scroll";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -267,6 +268,36 @@ export default function Students() {
           >
             <Download className="mr-2 h-4 w-4" />
             Export to CSV
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => {
+              const exportColumns = columns.map((col: any) => ({
+                header:
+                  typeof col.header === "function"
+                    ? col.meta?.csvHeader || ""
+                    : col.header,
+                accessorKey: col.accessorKey,
+                id: col.id,
+              }));
+
+              if (!rows || rows.length === 0)
+                return toast.error("No data to export");
+
+              exportToPDF({
+                rows,
+                columns: exportColumns,
+                filename: "students.pdf",
+                title: "Students Report",
+                websiteName: "Smart Attendance",
+                logoUrl: "/logo.png", // since it's in public/
+                excludeFields: ["barcodePlaceholder"], // skip barcode just for students
+              });
+            }}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export to PDF
           </Button>
 
           {role === "admin" && (

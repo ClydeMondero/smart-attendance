@@ -16,12 +16,14 @@ import {
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { convertToCSV, downloadCSV } from "@/utils/csv";
+import { exportToPDF } from "@/utils/pdf";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import {
   Calendar as CalendarIcon,
   ChevronDown,
   Download,
+  FileText,
   Trash,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -190,17 +192,44 @@ export default function EntryLogs() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => {
-            const csv = convertToCSV(data ?? [], columns);
-            if (!csv) return toast.error("No data to export");
-            downloadCSV(csv, "entry_logs.csv");
-          }}
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Export to CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const csv = convertToCSV(data ?? [], columns);
+              if (!csv) return toast.error("No data to export");
+              downloadCSV(csv, "entry_logs.csv");
+            }}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export to CSV
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const exportColumns = columns.map((col: any) => ({
+                header:
+                  typeof col.header === "string"
+                    ? col.header
+                    : col.meta?.csvHeader || "",
+                accessorKey: col.accessorKey,
+                id: col.id,
+              }));
+
+              exportToPDF({
+                rows: data ?? [],
+                columns: exportColumns,
+                filename: "entry-logs.pdf",
+                title: "Entry Logs Report",
+                websiteName: "Smart Attendance",
+                logoUrl: "/logo.png",
+              });
+            }}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Export to PDF
+          </Button>
+        </div>
       </div>
 
       {/* Data Table */}

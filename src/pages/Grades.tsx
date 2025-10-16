@@ -9,9 +9,10 @@ import api from "@/lib/api";
 import useUserStore from "@/store/userStore";
 import useSettingStore from "@/store/useSettingStore";
 import { convertToCSV, downloadCSV } from "@/utils/csv";
+import { exportToPDF } from "@/utils/pdf";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Download, LockIcon, LockOpenIcon } from "lucide-react";
+import { Download, FileText, LockIcon, LockOpenIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
@@ -110,6 +111,32 @@ export default function Grades() {
           >
             <Download className="mr-2 h-4 w-4" />
             Export to CSV
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => {
+              const exportColumns = columns.map((col: any) => ({
+                header:
+                  typeof col.header === "string"
+                    ? col.header
+                    : col.meta?.csvHeader || "",
+                accessorKey: col.accessorKey,
+                id: col.id,
+              }));
+
+              exportToPDF({
+                rows: grades ?? [],
+                columns: exportColumns,
+                filename: "grades.pdf",
+                title: "Grades Report",
+                websiteName: "Smart Attendance",
+                logoUrl: "/logo.png",
+              });
+            }}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Export to PDF
           </Button>
 
           {role === "admin" && (
