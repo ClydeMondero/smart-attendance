@@ -226,7 +226,7 @@ export default function Students() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col gap-4 p-4">
+    <div data-tour="students" className="min-h-screen flex flex-col gap-4 p-4">
       <h2 className="text-xl font-semibold">Students</h2>
 
       {/* Filters */}

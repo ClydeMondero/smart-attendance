@@ -195,7 +195,7 @@ export function AppSidebar() {
     });
 
   return (
-    <Sidebar>
+    <Sidebar className="sidebar">
       {/* Logo/Header */}
       <SidebarHeader className="h-[60px] flex items-center justify-center bg-background border-b-2">
         <Link

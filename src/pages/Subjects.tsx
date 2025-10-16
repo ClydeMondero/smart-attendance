@@ -153,7 +153,7 @@ export default function Subjects() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col gap-4 p-4">
+    <div data-tour="subjects" className="min-h-screen flex flex-col gap-4 p-4">
       <h2 className="text-xl font-semibold">Subjects</h2>
 
       {/* Filters */}

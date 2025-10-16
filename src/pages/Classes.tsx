@@ -105,7 +105,7 @@ export default function Classes() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col gap-4 p-4">
+    <div data-tour="classes" className="min-h-screen flex flex-col gap-4 p-4">
       <h2 className="text-xl font-semibold">Classes</h2>
 
       {/* Filters */}

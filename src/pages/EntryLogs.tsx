@@ -123,7 +123,7 @@ export default function EntryLogs() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col gap-4 p-4">
+    <div data-tour="entryLogs" className="min-h-screen flex flex-col gap-4 p-4">
       <h2 className="text-xl font-semibold">Entry Logs</h2>
 
       {/* Filters */}

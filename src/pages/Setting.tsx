@@ -68,7 +68,7 @@ export default function Setting() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col gap-6 p-6">
+    <div data-tour="settings" className="min-h-screen flex flex-col gap-6 p-6">
       <h2 className="text-xl font-semibold">Settings</h2>
 
       <Tabs defaultValue="class" className="w-full">

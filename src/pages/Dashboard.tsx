@@ -87,7 +87,7 @@ export default function Dashboard() {
   // });
 
   return (
-    <div className="min-h-screen flex flex-col gap-4 p-4">
+    <div data-tour="dashboard" className="min-h-screen flex flex-col gap-4 p-4">
       {/* KPI Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiCard

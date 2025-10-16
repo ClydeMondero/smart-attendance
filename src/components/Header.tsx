@@ -1,6 +1,8 @@
 import useUserStore from "@/store/userStore";
 import { scrollToTop } from "@/utils/scroll";
+import { useTour } from "@reactour/tour";
 import { motion } from "framer-motion";
+import { HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import ProfileMenu from "./ProfileMenu";
@@ -16,37 +18,28 @@ export default function Header() {
   const [hidden, setHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const { isLoggedIn } = useUserStore();
+  const { setIsOpen, setCurrentStep } = useTour(); // from reactour
 
   useEffect(() => {
     const handleScroll = () => {
-      // check if the user is scrolling down
       if (window.scrollY > lastScrollY && window.scrollY > 80) {
-        // hide the header when scrolling down
         setHidden(true);
       } else {
-        // show the header when scrolling up
         setHidden(false);
       }
-      // update the last scroll position
       setLastScrollY(window.scrollY);
     };
 
-    // add the event listener for scrolling
     window.addEventListener("scroll", handleScroll);
-    // remove the event listener when the component is unmounted
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
   return (
     <motion.div
-      // initial position of the header
       initial={{ y: 0 }}
-      // animate the header's position based on the hidden state
       animate={{ y: hidden ? -80 : 0 }}
-      // animation configuration
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      // CSS classes for the header
-      className="w-full h-15 sticky top-0 z-[40] px-4 flex items-center justify-between border-b-2 bg-background md:px-12 "
+      className="w-full h-15 sticky top-0 z-[40] px-4 flex items-center justify-between border-b-2 bg-background md:px-12"
     >
       <div className="flex items-center gap-8">
         {isLoggedIn ? (
@@ -63,23 +56,34 @@ export default function Header() {
             </span>
           </Link>
         )}
-        {/* Logo and link to the home page */}
       </div>
 
       {!isLoggedIn && (
-        <>
-          <div className="items-center gap-4 flex">
-            {/* Call to action buttons */}
-            <Button asChild onClick={scrollToTop} className="hidden md:block">
-              <Link to="/login">Login</Link>
-            </Button>
-          </div>
-        </>
+        <div className="items-center gap-4 flex">
+          <Button asChild onClick={scrollToTop} className="hidden md:block">
+            <Link to="/login">Login</Link>
+          </Button>
+        </div>
       )}
 
       {isLoggedIn && (
-        <div className="flex items-center">
-          <ProfileMenu />
+        <div className="flex items-center gap-2">
+          {/* Ghost button to start tutorial */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setIsOpen(true);
+              setCurrentStep(0);
+            }}
+            aria-label="Start tutorial"
+          >
+            <HelpCircle className="h-5 w-5" />
+          </Button>
+
+          <div className="profile">
+            <ProfileMenu />
+          </div>
         </div>
       )}
     </motion.div>

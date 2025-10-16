@@ -88,7 +88,7 @@ export default function Grades() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col gap-4 p-4">
+    <div data-tour="grades" className="min-h-screen flex flex-col gap-4 p-4">
       <h2 className="text-xl font-semibold">Grades</h2>
 
       {/* Filters + Actions */}
