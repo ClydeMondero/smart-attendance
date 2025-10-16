@@ -2,7 +2,6 @@ import useUserStore from "@/store/userStore";
 import { scrollToTop } from "@/utils/scroll";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { FaBell } from "react-icons/fa";
 import { Link } from "react-router";
 import ProfileMenu from "./ProfileMenu";
 import { Button } from "./ui/button";
@@ -80,9 +79,6 @@ export default function Header() {
 
       {isLoggedIn && (
         <div className="flex items-center">
-          <Button variant="ghost" size={"icon"}>
-            <FaBell className="text-muted-foreground" />
-          </Button>
           <ProfileMenu />
         </div>
       )}

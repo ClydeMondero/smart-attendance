@@ -49,6 +49,7 @@ export default function EntryLogs() {
     queryKey: ["attendance", "entry", filters, q],
     queryFn: async () => {
       const params = new URLSearchParams();
+      params.append("type", "entry");
       if (filters.date) params.append("date", filters.date);
       if (filters.classId) params.append("class_id", filters.classId);
 
