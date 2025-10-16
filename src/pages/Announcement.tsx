@@ -117,6 +117,12 @@ export default function Announcement() {
                     component="p"
                     className="text-red-500 text-sm"
                   />
+
+                  <span className="text-muted-foreground text-sm">
+                    If you choose to send an announcement, it will be sent to
+                    all students in the selected class. Leave it blank to send
+                    to all classes.
+                  </span>
                 </div>
 
                 <div className="space-y-2">

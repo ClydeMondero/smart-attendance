@@ -40,6 +40,7 @@ type Student = {
   created_at?: string;
   updated_at?: string;
   class_id: number;
+  photo_url?: string;
   school_class?: {
     grade_level: string;
     section: string;
@@ -332,7 +333,15 @@ const IdCardPreview = forwardRef<HTMLDivElement, { student: Student }>(
           <div className="p-3 flex h-[calc(100%-2rem)]">
             <div className="w-1/3 pr-2 flex items-center justify-center">
               <div className="w-20 h-24 rounded bg-gray-200 flex items-center justify-center text-[10px] text-gray-600">
-                PHOTO
+                {student?.photo_url ? (
+                  <img
+                    src={student?.photo_url}
+                    className="w-full h-full object-cover"
+                    alt="Student Photo"
+                  />
+                ) : (
+                  "Photo"
+                )}
               </div>
             </div>
             <div className="w-2/3 flex flex-col">
