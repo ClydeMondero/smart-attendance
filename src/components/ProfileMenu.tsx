@@ -15,12 +15,12 @@ import { useNavigate } from "react-router";
 
 export default function ProfileMenu() {
   const navigate = useNavigate();
-  const { logout } = useUserStore();
+  const { logout, user } = useUserStore();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="lg">
-          <FaUserCircle className="text-2xl" /> Sample User{" "}
+          <FaUserCircle className="text-2xl" /> {user?.name}
           <FaChevronDown className="text-xs text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>

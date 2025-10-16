@@ -22,11 +22,11 @@ import {
   LogOut,
   Megaphone,
   Settings,
-  UserCircle,
   UserCog,
   Users,
 } from "lucide-react";
 import { useEffect } from "react";
+import { FaUserCircle } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
@@ -342,7 +342,7 @@ export function AppSidebar() {
           }}
           className="flex items-center gap-3 p-2 rounded-lg bg-muted cursor-pointer hover:bg-muted/80 transition"
         >
-          <UserCircle className="w-8 h-8" />
+          <FaUserCircle className="text-4xl" />
           <div className="flex flex-col">
             <span className="font-medium">{user?.name}</span>
             <span className="text-xs text-muted-foreground">
