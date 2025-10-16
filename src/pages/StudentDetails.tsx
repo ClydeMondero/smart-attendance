@@ -30,6 +30,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useUserStore from "@/store/userStore";
 import { format, parse, parseISO } from "date-fns";
+import ReportCard from "./ReportCard";
 
 type Student = {
   id: number;
@@ -52,6 +53,7 @@ export default function StudentDetails() {
   const { id } = useParams<{ id: string }>();
   const { role } = useUserStore();
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const reportRef = useRef<HTMLDivElement | null>(null);
 
   const {
     data: student,
@@ -162,10 +164,6 @@ export default function StudentDetails() {
               : ""}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <PrintButton student={student} target={() => cardRef.current} />
-          <DownloadPngButton student={student} target={() => cardRef.current} />
-        </div>
       </div>
 
       {/* Tabs */}
@@ -186,9 +184,18 @@ export default function StudentDetails() {
         </TabsList>
 
         <TabsContent value="details">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <StudentInfo student={student} />
-            <IdCardPreview ref={cardRef} student={student} />
+          <div className="flex flex-col gap-2">
+            <div className="self-end flex items-center gap-2">
+              <PrintButton student={student} target={() => cardRef.current} />
+              <DownloadPngButton
+                student={student}
+                target={() => cardRef.current}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <StudentInfo student={student} />
+              <IdCardPreview ref={cardRef} student={student} />
+            </div>
           </div>
         </TabsContent>
 
@@ -232,22 +239,18 @@ export default function StudentDetails() {
         </TabsContent>
 
         <TabsContent value="grades">
-          <div className="grid gap-3">
-            {grades?.map((g: any) => (
-              <Card key={g.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    {g.subject?.name}
-                    <Badge variant="outline">{g.grading_period}</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">
-                  <div>Grade: {g.score}</div>
-                  <div>Remarks: {g.remarks ?? "-"}</div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex justify-end gap-2 mb-2">
+            <DownloadReportCardPDF
+              student={student}
+              target={() => reportRef.current}
+            />
+            <DownloadPngButton
+              student={student}
+              target={() => reportRef.current}
+            />
           </div>
+
+          <ReportCard ref={reportRef} student={student} grades={grades || []} />
         </TabsContent>
 
         <TabsContent value="subjects">
@@ -463,6 +466,43 @@ function DownloadPngButton({
     <Button variant="outline" onClick={handleDownload}>
       <Download className="mr-2" size={14} />
       Download PNG
+    </Button>
+  );
+}
+
+function DownloadReportCardPDF({
+  student,
+  target,
+}: {
+  student: Student;
+  target: () => HTMLElement | null;
+}) {
+  const handleDownloadPdf = async () => {
+    const el = target();
+    if (!el) return toast.error("Report card not found.");
+
+    try {
+      const dataUrl = await htmlToImage.toPng(el, {
+        cacheBust: true,
+        pixelRatio: 2,
+      });
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      const imgProps = pdf.getImageProperties(dataUrl);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${student.full_name}-report-card.pdf`);
+    } catch (e: any) {
+      toast.error(`Failed to export report card: ${e.message}`);
+    }
+  };
+
+  return (
+    <Button variant="outline" onClick={handleDownloadPdf}>
+      <Printer className="mr-2" size={14} />
+      Download PDF
     </Button>
   );
 }
