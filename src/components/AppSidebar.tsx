@@ -62,14 +62,14 @@ const menus: Record<Role, RoleMenus> = {
         icon: BookOpen,
         tooltip: "Manage your classes",
       },
-    ],
-    academics: [
       {
         title: "My Subjects",
         to: "/teacher/subjects",
         icon: GraduationCap,
         tooltip: "View your subjects",
       },
+    ],
+    academics: [
       {
         title: "Grades",
         to: "/teacher/grades",
@@ -117,14 +117,14 @@ const menus: Record<Role, RoleMenus> = {
         icon: BookOpen,
         tooltip: "Manage classes",
       },
-    ],
-    academics: [
       {
         title: "Subjects",
         to: "/admin/subjects",
         icon: GraduationCap,
         tooltip: "Manage subjects",
       },
+    ],
+    academics: [
       {
         title: "Grades",
         to: "/admin/grades",

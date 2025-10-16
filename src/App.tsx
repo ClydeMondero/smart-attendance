@@ -23,6 +23,7 @@ import SignUp from "./pages/SignUp";
 import StudentDetails from "./pages/StudentDetails";
 import StudentForm from "./pages/StudentForm";
 import Students from "./pages/Students";
+import SubjectAttendanceLog from "./pages/SubjectAttendanceLog";
 import SubjectForm from "./pages/SubjectForm";
 import Subjects from "./pages/Subjects";
 import Terms from "./pages/Terms";
@@ -54,6 +55,10 @@ export default function App() {
                 element={<ClassAttendanceLog />}
               />
               <Route path="/teacher/subjects" element={<Subjects />} />
+              <Route
+                path="/teacher/subjects/:id"
+                element={<SubjectAttendanceLog />}
+              />
 
               <Route path="/teacher/grades" element={<Grades />} />
               <Route path="/teacher/grades/new" element={<GradeForm />} />
@@ -82,6 +87,10 @@ export default function App() {
               <Route
                 path="/admin/subjects/:id/edit"
                 element={<SubjectForm />}
+              />
+              <Route
+                path="/admin/subjects/:id"
+                element={<SubjectAttendanceLog />}
               />
 
               <Route path="/admin/grades" element={<Grades />} />

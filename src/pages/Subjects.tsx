@@ -11,9 +11,10 @@ import { Input } from "@/components/ui/input";
 import api from "@/lib/api";
 import useUserStore from "@/store/userStore";
 import { convertToCSV, downloadCSV } from "@/utils/csv";
+import { scrollToTop } from "@/utils/scroll";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ChevronDown, Download, Pencil, Trash } from "lucide-react";
+import { ChevronDown, Download, Eye, Pencil, Trash } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
@@ -106,6 +107,15 @@ export default function Subjects() {
             header: "Actions",
             cell: ({ row }) => (
               <div className="flex gap-2">
+                <Button
+                  size="icon"
+                  onClick={() => {
+                    navigate(`/${role}/subjects/${row.original.id}`);
+                    scrollToTop();
+                  }}
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
                 <Button
                   size="icon"
                   variant="outline"

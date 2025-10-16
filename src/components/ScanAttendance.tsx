@@ -10,9 +10,10 @@ import { toast } from "sonner";
 const COOLDOWN_MS = 2500;
 const QUICK_PAUSE_AFTER_SUCCESS_MS = 600;
 
-type Props = {
-  type?: "class" | "entry";
+type ScanAttendanceProps = {
+  type?: "class" | "entry" | "subject";
   classId?: number | string | null;
+  subjectId?: number | string | null;
   gradeLevel?: string;
   section?: string;
   apiPath?: string;
@@ -34,13 +35,14 @@ type Student = {
 export default function ScanAttendance({
   type = "class",
   classId = null,
+  subjectId = null,
   gradeLevel = "",
   section = "",
   apiPath = "/attendances",
   date = new Date().toISOString().slice(0, 10),
   onSaved,
   expectedTime,
-}: Props) {
+}: ScanAttendanceProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
@@ -269,6 +271,8 @@ export default function ScanAttendance({
     createAttendance.mutate({
       action: "scan",
       class_id: classId ?? undefined,
+      subject_id: subjectId ?? undefined, // ✅ add this
+      type, // ✅ pass "subject"
       barcode: barcodeText,
       date,
       expected_time_in: expectedTime,
