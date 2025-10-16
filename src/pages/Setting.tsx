@@ -18,9 +18,19 @@ export default function Setting() {
     setClassAttendanceTemplate,
     classAbsenceTemplate,
     setClassAbsenceTemplate,
+    subjectAttendanceTemplate,
+    setSubjectAttendanceTemplate,
+    subjectAbsenceTemplate,
+    setSubjectAbsenceTemplate,
   } = useSettingStore();
 
-  type template = "class" | "classAbsence" | "schoolIn" | "schoolOut";
+  type template =
+    | "class"
+    | "classAbsence"
+    | "subjectAttendance"
+    | "subjectAbsence"
+    | "schoolIn"
+    | "schoolOut";
 
   const { mutate, isPending } = useTemplateSettings();
 
@@ -33,7 +43,11 @@ export default function Setting() {
         ? "class_absent_template"
         : templateType === "schoolIn"
         ? "school_in_template"
-        : "school_out_template";
+        : templateType === "schoolOut"
+        ? "school_out_template"
+        : templateType === "subjectAttendance"
+        ? "subject_in_template"
+        : "subject_absent_template";
 
     // Map template value
     const newValue =
@@ -43,7 +57,11 @@ export default function Setting() {
         ? classAbsenceTemplate
         : templateType === "schoolIn"
         ? schoolInTemplate
-        : schoolOutTemplate;
+        : templateType === "schoolOut"
+        ? schoolOutTemplate
+        : templateType === "subjectAttendance"
+        ? subjectAttendanceTemplate
+        : subjectAbsenceTemplate;
 
     // Pass template type and and value to mutation
     mutate({ templateSetting, newValue });
@@ -60,6 +78,12 @@ export default function Setting() {
           </TabsTrigger>
           <TabsTrigger value="classAbsence" disabled={isPending}>
             Class Absence Template
+          </TabsTrigger>
+          <TabsTrigger value="subjectAttendance" disabled={isPending}>
+            Subject Attendance Template
+          </TabsTrigger>
+          <TabsTrigger value="subjectAbsence" disabled={isPending}>
+            Subject Absence Template
           </TabsTrigger>
           <TabsTrigger value="schoolIn" disabled={isPending}>
             School In Template
@@ -107,6 +131,54 @@ export default function Setting() {
               />
               <div className="flex gap-2">
                 <Button onClick={() => handleUpdate("classAbsence")}>
+                  {isPending ? (
+                    <LoaderCircle className="animate-spin" />
+                  ) : (
+                    "Update Template"
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="subjectAttendance">
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                This is content of the message sent to the parents when their
+                child attends their subject.
+              </p>
+              <Textarea
+                rows={10}
+                defaultValue={subjectAttendanceTemplate}
+                onChange={(e) => setSubjectAttendanceTemplate(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <Button onClick={() => handleUpdate("subjectAttendance")}>
+                  {isPending ? (
+                    <LoaderCircle className="animate-spin" />
+                  ) : (
+                    "Update Template"
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="subjectAbsence">
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                This is content of the message sent to the parents when their
+                child misses their subject.
+              </p>
+              <Textarea
+                rows={10}
+                defaultValue={subjectAbsenceTemplate}
+                onChange={(e) => setSubjectAbsenceTemplate(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <Button onClick={() => handleUpdate("subjectAbsence")}>
                   {isPending ? (
                     <LoaderCircle className="animate-spin" />
                   ) : (

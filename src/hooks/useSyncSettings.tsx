@@ -10,6 +10,8 @@ export function useSyncSettings() {
     setSchoolOutTemplate,
     setClassAttendanceTemplate,
     setClassAbsenceTemplate,
+    setSubjectAttendanceTemplate,
+    setSubjectAbsenceTemplate,
   } = useSettingStore();
 
   useEffect(() => {
@@ -19,6 +21,8 @@ export function useSyncSettings() {
       setSchoolOutTemplate(data.school_out_template);
       setClassAttendanceTemplate(data.class_in_template);
       setClassAbsenceTemplate(data.class_absent_template);
+      setSubjectAttendanceTemplate(data.subject_in_template);
+      setSubjectAbsenceTemplate(data.subject_absent_template);
     }
   }, [
     data,
@@ -27,5 +31,7 @@ export function useSyncSettings() {
     setSchoolOutTemplate,
     setClassAttendanceTemplate,
     setClassAbsenceTemplate,
+    setSubjectAttendanceTemplate,
+    setSubjectAbsenceTemplate,
   ]);
 }

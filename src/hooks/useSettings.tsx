@@ -32,6 +32,8 @@ const Templates = {
   schoolOutTemplate: "school_out_template",
   classAttendanceTemplate: "class_in_template",
   classAbsenceTemplate: "class_absent_template",
+  subjectAttendanceTemplate: "subject_in_template",
+  subjectAbsenceTemplate: "subject_absent_template",
 } as const;
 
 export type Templates = (typeof Templates)[keyof typeof Templates];
