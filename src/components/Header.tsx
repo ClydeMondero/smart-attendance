@@ -2,23 +2,33 @@ import useUserStore from "@/store/userStore";
 import { scrollToTop } from "@/utils/scroll";
 import { useTour } from "@reactour/tour";
 import { motion } from "framer-motion";
-import { HelpCircle } from "lucide-react";
+import { Download, HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import ProfileMenu from "./ProfileMenu";
 import { Button } from "./ui/button";
 import { SidebarTrigger } from "./ui/sidebar";
 
-/**
- * Header component
- * @returns {JSX.Element}
- * @constructor
- */
 export default function Header() {
   const [hidden, setHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const { isLoggedIn } = useUserStore();
-  const { setIsOpen, setCurrentStep } = useTour(); // from reactour
+  const { setIsOpen, setCurrentStep } = useTour();
+
+  // 🧭 Auto-start tour if first time logged in
+  useEffect(() => {
+    if (isLoggedIn) {
+      const hasSeenTour = localStorage.getItem("hasSeenTour");
+
+      if (!hasSeenTour) {
+        setTimeout(() => {
+          setCurrentStep(0);
+          setIsOpen(true);
+          localStorage.setItem("hasSeenTour", "true");
+        }, 1000); // slight delay to ensure UI loads
+      }
+    }
+  }, [isLoggedIn, setIsOpen, setCurrentStep]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,7 +78,20 @@ export default function Header() {
 
       {isLoggedIn && (
         <div className="flex items-center gap-2">
-          {/* Ghost button to start tutorial */}
+          <Button
+            variant="ghost"
+            aria-label="Download Operator Mobile App"
+            asChild
+          >
+            <Link
+              to="https://drive.google.com/file/d/1XNX1iIvyZgHLgO4lg_BJVxMf9CQtVYR6/view"
+              target="_blank"
+            >
+              <Download className="h-5 w-5" />
+              Operator Mobile App
+            </Link>
+          </Button>
+
           <Button
             variant="ghost"
             size="icon"
