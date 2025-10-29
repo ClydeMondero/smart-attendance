@@ -11,8 +11,14 @@ import useSettingStore from "@/store/useSettingStore";
 import { convertToCSV, downloadCSV } from "@/utils/csv";
 import { exportToPDF } from "@/utils/pdf";
 import { useQuery } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
-import { Download, FileText, LockIcon, LockOpenIcon } from "lucide-react";
+import type { ColumnDef, Row } from "@tanstack/react-table";
+import {
+  Download,
+  FileText,
+  LockIcon,
+  LockOpenIcon,
+  Pencil,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
@@ -85,6 +91,27 @@ export default function Grades() {
         return <Badge>{remarks || "—"}</Badge>;
       },
     },
+    ...(allowGrades
+      ? [
+          {
+            id: "actions",
+            header: "Actions",
+            cell: ({ row }: { row: Row<GradeItem> }) => (
+              <div className="flex gap-2">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() =>
+                    navigate(`/${role}/grades/${row.original.id}/edit`)
+                  }
+                >
+                  <Pencil className="w-4 h-4" aria-label="Edit grade" />
+                </Button>
+              </div>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (

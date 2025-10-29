@@ -245,10 +245,6 @@ export default function StudentDetails() {
               student={student}
               target={() => reportRef.current}
             />
-            <DownloadPngButton
-              student={student}
-              target={() => reportRef.current}
-            />
           </div>
 
           <ReportCard ref={reportRef} student={student} grades={grades || []} />

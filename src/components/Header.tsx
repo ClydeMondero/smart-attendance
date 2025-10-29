@@ -12,10 +12,10 @@ import { SidebarTrigger } from "./ui/sidebar";
 export default function Header() {
   const [hidden, setHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { isLoggedIn } = useUserStore();
   const { setIsOpen, setCurrentStep } = useTour();
 
-  // 🧭 Auto-start tour if first time logged in
   useEffect(() => {
     if (isLoggedIn) {
       const hasSeenTour = localStorage.getItem("hasSeenTour");
@@ -25,7 +25,7 @@ export default function Header() {
           setCurrentStep(0);
           setIsOpen(true);
           localStorage.setItem("hasSeenTour", "true");
-        }, 1000); // slight delay to ensure UI loads
+        }, 1000);
       }
     }
   }, [isLoggedIn, setIsOpen, setCurrentStep]);
@@ -43,6 +43,30 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () =>
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+  }, []);
+
+  const handleInstallPWA = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      console.log("✅ PWA installation accepted");
+    }
+    setDeferredPrompt(null);
+  };
 
   return (
     <motion.div
@@ -78,6 +102,7 @@ export default function Header() {
 
       {isLoggedIn && (
         <div className="flex items-center gap-2">
+          {/* 📱 Operator Mobile App Download */}
           <Button
             variant="ghost"
             aria-label="Download Operator Mobile App"
@@ -87,10 +112,21 @@ export default function Header() {
               to="https://drive.google.com/file/d/1XNX1iIvyZgHLgO4lg_BJVxMf9CQtVYR6/view"
               target="_blank"
             >
-              <Download className="h-5 w-5" />
+              <Download className="h-5 w-5 mr-1" />
               Operator Mobile App
             </Link>
           </Button>
+
+          {deferredPrompt && (
+            <Button
+              variant="ghost"
+              aria-label="Install Web App"
+              onClick={handleInstallPWA}
+            >
+              <Download className="h-5 w-5 mr-1" />
+              Install Web App
+            </Button>
+          )}
 
           <Button
             variant="ghost"

@@ -63,6 +63,7 @@ export default function App() {
 
               <Route path="/teacher/grades" element={<Grades />} />
               <Route path="/teacher/grades/new" element={<GradeForm />} />
+              <Route path="/teacher/grades/:id/edit" element={<GradeForm />} />
 
               <Route path="/teacher/students" element={<Students />} />
               <Route
@@ -96,6 +97,7 @@ export default function App() {
 
               <Route path="/admin/grades" element={<Grades />} />
               <Route path="/admin/grades/new" element={<GradeForm />} />
+              <Route path="/admin/grades/:id/edit" element={<GradeForm />} />
 
               <Route path="/admin/students" element={<Students />} />
               <Route path="/admin/students/new" element={<StudentForm />} />

@@ -1,4 +1,8 @@
-import type { FAQType } from "@/types/faqs";
+type FAQType = {
+  id: string;
+  question: string;
+  answer: string;
+};
 
 const faqs: FAQType[] = [
   {

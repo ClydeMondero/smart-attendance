@@ -67,7 +67,7 @@ const Hero = () => {
       <img
         src="/hero-background.png"
         alt=""
-        className="w-full h-screen opacity-50"
+        className="w-full h-screen opacity-50 hidden md:block"
       />
     </div>
   );

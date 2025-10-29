@@ -42,6 +42,8 @@ export default function Login() {
         password: values.password,
       });
 
+      console.log(res.data);
+
       const { user, token } = res.data;
 
       login(user, token);
