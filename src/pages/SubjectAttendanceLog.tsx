@@ -69,6 +69,7 @@ type SubjectShow = {
   };
   status: "active" | "inactive";
   expected_time_in?: string | null;
+  expected_time_out?: string | null; // ✅ added
 };
 
 function ymd(date: Date) {
@@ -109,11 +110,11 @@ export default function SubjectAttendanceLog() {
   const selectedDateStr = ymd(selectedDate);
 
   const [expectedTime, setExpectedTime] = useState<string | null>(null);
+  const [expectedTimeOut, setExpectedTimeOut] = useState<string | null>(null); // ✅ added
 
   const qc = useQueryClient();
 
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-
   const [isFinished, setIsFinished] = useState(false);
 
   // fetch subject
@@ -128,9 +129,9 @@ export default function SubjectAttendanceLog() {
 
   // initialize expected time from subject when loaded
   useEffect(() => {
-    if (subject?.expected_time_in) {
-      setExpectedTime(subject.expected_time_in);
-    }
+    if (subject?.expected_time_in) setExpectedTime(subject.expected_time_in);
+    if (subject?.expected_time_out)
+      setExpectedTimeOut(subject.expected_time_out); // ✅ added
   }, [subject]);
 
   // fetch attendance rows
@@ -234,6 +235,42 @@ export default function SubjectAttendanceLog() {
     onError: () => toast.error("Failed to update expected time"),
   });
 
+  // ✅ New mutation for expected time out
+  const updateExpectedTimeOutMutation = useMutation({
+    mutationFn: async (time: string) =>
+      api.patch(`/subjects/${subjectId}`, { expected_time_out: time }),
+    onSuccess: () => {
+      toast.success("Expected Time Out updated");
+      qc.invalidateQueries({ queryKey: ["subject", subjectId] });
+    },
+    onError: () => toast.error("Failed to update expected time out"),
+  });
+
+  // ✅ Automatically stop attendance when time reaches expected time out
+  useEffect(() => {
+    if (!expectedTimeOut || isFinished) return;
+
+    const checkTime = () => {
+      const now = new Date();
+      const [hour, minute] = expectedTimeOut.split(":").map(Number);
+      const target = new Date();
+      target.setHours(hour, minute, 0, 0);
+
+      if (now >= target) {
+        if (!stopMutation.isPending) {
+          stopMutation.mutate();
+          setIsFinished(true);
+          toast.info(
+            "Attendance automatically stopped based on expected time out."
+          );
+        }
+      }
+    };
+
+    const interval = setInterval(checkTime, 30 * 1000);
+    return () => clearInterval(interval);
+  }, [expectedTimeOut, isFinished]);
+
   const columns: ColumnDef<SubjectAttendanceLogItem>[] = useMemo(
     () => [
       { accessorKey: "studentName", header: "Student Name" },
@@ -270,14 +307,10 @@ export default function SubjectAttendanceLog() {
             }
           };
 
-          const handleChange = (val: string) => {
-            setDraft(val);
-          };
+          const handleChange = (val: string) => setDraft(val);
 
           const handleKeyDown = (e: React.KeyboardEvent) => {
-            if (e.key === "Enter") {
-              commitUpdate(draft);
-            }
+            if (e.key === "Enter") commitUpdate(draft);
           };
 
           return (
@@ -291,7 +324,6 @@ export default function SubjectAttendanceLog() {
           );
         },
       },
-
       {
         header: "Status",
         accessorKey: "status",
@@ -401,12 +433,30 @@ export default function SubjectAttendanceLog() {
         {selectedDate?.toDateString() === new Date().toDateString() &&
           !isFinished && (
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
+              {/* Expected Time In */}
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground mb-1">
+                  Expected Time In
+                </span>
                 <TimePicker
                   value={expectedTime ?? "07:00"}
                   onChange={(val) => {
                     setExpectedTime(val);
                     if (val) updateExpectedTimeMutation.mutate(val);
+                  }}
+                />
+              </div>
+
+              {/*  Expected Time Out */}
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground mb-1">
+                  Expected Time Out
+                </span>
+                <TimePicker
+                  value={expectedTimeOut ?? "17:00"}
+                  onChange={(val) => {
+                    setExpectedTimeOut(val);
+                    if (val) updateExpectedTimeOutMutation.mutate(val);
                   }}
                 />
               </div>
